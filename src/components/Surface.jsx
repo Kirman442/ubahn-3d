@@ -11,15 +11,15 @@ const STYLE = {
   version: 8,
   sources: { pm: { type: 'vector', url: `pmtiles://${TILES}` } },
   layers: [
-    { id: 'bg', type: 'background', paint: { 'background-color': '#F1F2EE' } },
-    { id: 'green', type: 'fill', source: 'pm', 'source-layer': 'landuse', filter: ['in', ['get', 'kind'], ['literal', GREEN]], paint: { 'fill-color': '#D3E2C6' } },
-    { id: 'water', type: 'fill', source: 'pm', 'source-layer': 'water', paint: { 'fill-color': '#A8C6DC' } },
+    { id: 'bg', type: 'background', paint: { 'background-color': '#D9DDE0' } },
+    { id: 'green', type: 'fill', source: 'pm', 'source-layer': 'landuse', filter: ['in', ['get', 'kind'], ['literal', GREEN]], paint: { 'fill-color': '#CBD5C7' } },
+    { id: 'water', type: 'fill', source: 'pm', 'source-layer': 'water', paint: { 'fill-color': '#B3C2CF' } },
     { id: 'minor', type: 'line', source: 'pm', 'source-layer': 'roads', filter: ['in', ['get', 'kind'], ['literal', ['medium_road']]],
-      paint: { 'line-color': '#DCD3C2', 'line-width': 1.2 } },
+      paint: { 'line-color': '#D0D0CB', 'line-width': 1.2 } },
     { id: 'major', type: 'line', source: 'pm', 'source-layer': 'roads', filter: ['in', ['get', 'kind'], ['literal', ['major_road', 'highway']]],
-      paint: { 'line-color': '#C9B590', 'line-width': ['match', ['get', 'kind'], 'highway', 3.2, 2.2] } },
+      paint: { 'line-color': '#C2B9A8', 'line-width': ['match', ['get', 'kind'], 'highway', 3.2, 2.2] } },
     { id: 'rail', type: 'line', source: 'pm', 'source-layer': 'roads', filter: ['==', ['get', 'kind'], 'rail'],
-      paint: { 'line-color': '#B9BDC2', 'line-width': 1, 'line-dasharray': [3, 2] } },
+      paint: { 'line-color': '#C2C6CA', 'line-width': 1, 'line-dasharray': [3, 2] } },
   ],
 };
 
@@ -114,7 +114,7 @@ export default function Surface({ extent, kind, opacity, depthBottom }) {
     <group>
       {/* сверху: схема города */}
       <mesh geometry={geo} renderOrder={1}>
-        <meshBasicMaterial map={map} color={map ? '#ffffff' : '#ECEDE8'} transparent opacity={opacity} depthWrite={false} side={THREE.FrontSide} toneMapped={false} />
+        <meshBasicMaterial map={map} color={map ? '#ffffff' : '#D9DDE0'} transparent opacity={opacity} depthWrite={false} side={THREE.FrontSide} toneMapped={false} />
       </mesh>
       {/* снизу: земляной «потолок» — та же схема, тонированная в цвет грунта */}
       <mesh geometry={geo} renderOrder={1}>
