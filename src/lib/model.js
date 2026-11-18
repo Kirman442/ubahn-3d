@@ -20,7 +20,7 @@ export function prepare(net, geo) {
     };
   });
   const sections = net.sections.map((s, i) => {
-    const pts = s.xyz.map(([lon, lat, z], k) => { const [x, zz] = toXZ(lon, lat); return { x, zz, z, g: s.g[k] }; });
+    const pts = s.xyz.map(([lon, lat, z], k) => { const [x, zz] = toXZ(lon, lat); return { x, zz, z, g: s.g[k], gd: s.g_dgm ? s.g_dgm[k] : s.g[k] }; });
     let len = 0;
     const dist = [0];
     for (let k = 1; k < pts.length; k++) { len += Math.hypot(pts[k].x - pts[k - 1].x, pts[k].zz - pts[k - 1].zz); dist.push(len); }
@@ -78,7 +78,7 @@ export function lineProfile(chain, stations) {
     const s = e.s;
     const P = e.rev ? [...s.pts].reverse() : s.pts;
     const D = e.rev ? s.dist.map((d) => s.length_m - d).reverse() : s.dist;
-    P.forEach((p, j) => { if (k && !j) return; pts.push([off + D[j], p.g, p.g + p.z]); });
+    P.forEach((p, j) => { if (k && !j) return; pts.push([off + D[j], p.gd, p.g + p.z]); });
     const from = e.rev ? s.to : s.from;
     if (!k) marks.push({ name: from, d: off });
     off += s.length_m;

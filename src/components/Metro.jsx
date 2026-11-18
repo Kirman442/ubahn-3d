@@ -171,7 +171,7 @@ export function SurfaceTraces({ sections, visible, SY }) {
       if (!visible[i]) return;
       for (let k = 1; k < s.pts.length; k++) {
         const p = s.pts[k - 1]; const q = s.pts[k];
-        a.push(p.x, SY(p.g), p.zz, q.x, SY(q.g), q.zz);
+        a.push(p.x, SY(p.gd), p.zz, q.x, SY(q.gd), q.zz);
       }
     });
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(a, 3));
