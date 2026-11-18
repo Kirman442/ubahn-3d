@@ -48,6 +48,13 @@ export default function Panel(p) {
       <h2>Überhöhung <output>×{opts.exag}</output></h2>
       <input className="range" type="range" min={1} max={200} step={1} value={opts.exag} onChange={(e) => setOpt('exag', Number(e.target.value))} aria-label="Vertikale Überhöhung" />
 
+      <h2>Oberfläche {opts.surface !== 'off' && <output>{Math.round(opts.surfOp * 100)} %</output>}</h2>
+      <Seg value={opts.surface} set={(v) => setOpt('surface', v)} options={[['map', 'Stadtplan'], ['plain', 'Fläche'], ['off', 'aus']]} />
+      {opts.surface !== 'off' && (
+        <input className="range" type="range" min={0.1} max={1} step={0.05} value={opts.surfOp} onChange={(e) => setOpt('surfOp', Number(e.target.value))} aria-label="Deckkraft der Oberfläche" />
+      )}
+      <p className="hint small">Von oben: Stadtplan · von unten: Erdreich (braun)</p>
+
       <h2>Höhe</h2>
       <Seg value={opts.mode} set={(v) => setOpt('mode', v)} options={[['rel', 'unter Straße'], ['abs', 'ü. NHN (Relief)']]} />
 

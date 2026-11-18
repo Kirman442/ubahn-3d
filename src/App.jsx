@@ -12,7 +12,7 @@ const load = (name) => fetch(`/data/${name}`, { cache: 'no-cache' }).then((r) =>
   return r.json();
 });
 
-const DEFAULT_OPTS = { exag: DEFAULT_EXAG, mode: 'rel', color: 'line', labels: 'deep', shafts: true, grid: true, levels: true, transfers: true };
+const DEFAULT_OPTS = { exag: DEFAULT_EXAG, surface: 'map', surfOp: 0.6, mode: 'rel', color: 'line', labels: 'deep', shafts: true, grid: true, levels: true, transfers: true };
 const cssVar = (n, fb) => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || fb;
 
 export default function App() {
