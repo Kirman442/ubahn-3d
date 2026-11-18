@@ -15,7 +15,8 @@ export const LINE_COLOR = Object.fromEntries(LINES.map((l) => [l.id, l.color]));
 export const START_YEAR = 1900;
 export const END_YEAR = new Date().getFullYear();
 
-// 3D
-export const TUBE_RADIUS = 22;      // м (в сцене толще реального тоннеля ≈3,5 м, чтобы было видно)
-export const STATION_RADIUS = 38;   // м
-export const DEFAULT_EXAG = 5;      // вертикальное преувеличение
+// 3D (метры сцены = метры на местности по горизонтали)
+export const TUBE_RADIUS = 28;
+export const STATION_RADIUS = 62;
+export const DEFAULT_EXAG = 50;     // как у 3d-metro: ×50
+export const DEEP_LABEL = 10;       // режим подписей «tief»: от 10 м под поверхностью

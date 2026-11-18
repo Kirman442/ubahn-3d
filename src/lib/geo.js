@@ -1,4 +1,3 @@
-import maplibregl from 'maplibre-gl';
 
 // Своя проекция: метры от центра Берлина (как у 3d-metro.ru — плоская локальная система).
 // Сцена three.js: x = восток, y = вверх, z = −север.
@@ -11,7 +10,4 @@ export const M_PER_DEG_LON = 111412.84 * Math.cos(phi) - 93.5 * Math.cos(3 * phi
 export const toXZ = (lon, lat) => [(lon - ORIGIN.lon) * M_PER_DEG_LON, -(lat - ORIGIN.lat) * M_PER_DEG_LAT];
 export const fromXZ = (x, z) => [ORIGIN.lon + x / M_PER_DEG_LON, ORIGIN.lat - z / M_PER_DEG_LAT];
 
-// Охват земли (подложки): вся сеть + запас
-export const GROUND_BBOX = { west: 13.15, east: 13.68, south: 52.395, north: 52.62 };
 
-export const merc = (lon, lat) => maplibregl.MercatorCoordinate.fromLngLat([lon, lat]);
