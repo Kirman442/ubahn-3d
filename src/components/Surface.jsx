@@ -13,15 +13,15 @@ const STYLE = {
   layers: [
     { id: 'bg', type: 'background', paint: { 'background-color': '#D9DDE0' } },
     { id: 'green', type: 'fill', source: 'pm', 'source-layer': 'landuse', filter: ['in', ['get', 'kind'], ['literal', GREEN]], paint: { 'fill-color': '#CBD5C7' } },
-    { id: 'water', type: 'fill', source: 'pm', 'source-layer': 'water', filter: ['==', ['geometry-type'], 'Polygon'], paint: { 'fill-color': '#7FA3C4' } },
+    { id: 'water', type: 'fill', source: 'pm', 'source-layer': 'water', filter: ['==', ['geometry-type'], 'Polygon'], paint: { 'fill-color': '#6E98C2' } },
     { id: 'waterline', type: 'line', source: 'pm', 'source-layer': 'water', filter: ['==', ['geometry-type'], 'LineString'],
-      paint: { 'line-color': '#7FA3C4', 'line-width': ['match', ['get', 'kind'], 'river', 9, 'canal', 6, 'stream', 2.5, 0] } },
+      paint: { 'line-color': '#6E98C2', 'line-width': ['match', ['get', 'kind'], 'river', 14, 'canal', 9, 'stream', 3, 0] } },
     { id: 'watershore', type: 'line', source: 'pm', 'source-layer': 'water', filter: ['==', ['geometry-type'], 'Polygon'],
-      paint: { 'line-color': '#7FA3C4', 'line-width': 3 } },
+      paint: { 'line-color': '#6E98C2', 'line-width': 4 } },
     { id: 'minor', type: 'line', source: 'pm', 'source-layer': 'roads', filter: ['in', ['get', 'kind'], ['literal', ['medium_road']]],
       paint: { 'line-color': '#D0D0CB', 'line-width': 1.2 } },
     { id: 'major', type: 'line', source: 'pm', 'source-layer': 'roads', filter: ['in', ['get', 'kind'], ['literal', ['major_road', 'highway']]],
-      paint: { 'line-color': '#C2B9A8', 'line-width': ['match', ['get', 'kind'], 'highway', 3.2, 2.2] } },
+      paint: { 'line-color': '#C2B9A8', 'line-width': ['match', ['get', 'kind'], 'highway', 4, 2.6] } },
     { id: 'rail', type: 'line', source: 'pm', 'source-layer': 'roads', filter: ['==', ['get', 'kind'], 'rail'],
       paint: { 'line-color': '#C2C6CA', 'line-width': 1, 'line-dasharray': [3, 2] } },
   ],
@@ -118,11 +118,11 @@ export default function Surface({ extent, kind, opacity, depthBottom }) {
     <group>
       {/* сверху: схема города */}
       <mesh geometry={geo} renderOrder={1}>
-        <meshBasicMaterial map={map} color={map ? '#ffffff' : '#D9DDE0'} transparent opacity={opacity} depthWrite={false} side={THREE.FrontSide} toneMapped={false} />
+        <meshBasicMaterial key={map ? map.uuid : "plain"} map={map} color={map ? '#ffffff' : '#D9DDE0'} transparent opacity={opacity} depthWrite={false} side={THREE.FrontSide} toneMapped={false} />
       </mesh>
       {/* снизу: земляной «потолок» — та же схема, тонированная в цвет грунта */}
       <mesh geometry={geo} renderOrder={1}>
-        <meshBasicMaterial map={map} color={EARTH} transparent opacity={Math.min(1, opacity * 0.85)} depthWrite={false} side={THREE.BackSide} toneMapped={false} />
+        <meshBasicMaterial key={map ? map.uuid : "plain"} map={map} color={EARTH} transparent opacity={Math.min(1, opacity * 0.85)} depthWrite={false} side={THREE.BackSide} toneMapped={false} />
       </mesh>
       <mesh geometry={walls.g} renderOrder={0}>
         <meshBasicMaterial color={EARTH} transparent opacity={0.07} depthWrite={false} side={THREE.DoubleSide} />
