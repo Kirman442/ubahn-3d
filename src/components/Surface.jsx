@@ -13,7 +13,11 @@ const STYLE = {
   layers: [
     { id: 'bg', type: 'background', paint: { 'background-color': '#D9DDE0' } },
     { id: 'green', type: 'fill', source: 'pm', 'source-layer': 'landuse', filter: ['in', ['get', 'kind'], ['literal', GREEN]], paint: { 'fill-color': '#CBD5C7' } },
-    { id: 'water', type: 'fill', source: 'pm', 'source-layer': 'water', paint: { 'fill-color': '#B3C2CF' } },
+    { id: 'water', type: 'fill', source: 'pm', 'source-layer': 'water', filter: ['==', ['geometry-type'], 'Polygon'], paint: { 'fill-color': '#7FA3C4' } },
+    { id: 'waterline', type: 'line', source: 'pm', 'source-layer': 'water', filter: ['==', ['geometry-type'], 'LineString'],
+      paint: { 'line-color': '#7FA3C4', 'line-width': ['match', ['get', 'kind'], 'river', 9, 'canal', 6, 'stream', 2.5, 0] } },
+    { id: 'watershore', type: 'line', source: 'pm', 'source-layer': 'water', filter: ['==', ['geometry-type'], 'Polygon'],
+      paint: { 'line-color': '#7FA3C4', 'line-width': 3 } },
     { id: 'minor', type: 'line', source: 'pm', 'source-layer': 'roads', filter: ['in', ['get', 'kind'], ['literal', ['medium_road']]],
       paint: { 'line-color': '#D0D0CB', 'line-width': 1.2 } },
     { id: 'major', type: 'line', source: 'pm', 'source-layer': 'roads', filter: ['in', ['get', 'kind'], ['literal', ['major_road', 'highway']]],
