@@ -83,7 +83,7 @@ export function Tubes({ sections, visible, Y, colorMode, focusLine, onHover, onP
 export function Stations({ stations, sections, Y, colorMode, focusLine, selectedId, hoverId, onHover, onPick, neu }) {
   const mats = useMemo(() => {
     const cache = new Map();
-    return (s, faded) => {
+    const f = (s, faded) => {
       const ghost = s.state === 'interrupted';
       const c = colorMode === 'depth' ? depthColor(s.z) : new THREE.Color(s.color);
       const key = `${c.getHexString()}|${ghost}|${faded}`;
@@ -96,7 +96,11 @@ export function Stations({ stations, sections, Y, colorMode, focusLine, selected
       }
       return cache.get(key);
     };
+    f.cache = cache;
+    return f;
   }, [colorMode]);
+  // Materialien des alten Farbmodus freigeben (vorher blieben sie bis zum Seitenwechsel im GPU-Speicher)
+  useEffect(() => () => mats.cache.forEach((m) => m.dispose()), [mats]);
   const ringMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#B7762C', depthTest: false, transparent: true }), []);
   // Röntgen-Markierung: gewählter/überfahrener Bahnhof bleibt auch unter einer deckenden Oberfläche sichtbar
   const xray = useMemo(() => new Map(), []);

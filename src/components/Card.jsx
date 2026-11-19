@@ -125,7 +125,7 @@ function Profile({ prof, color, iso, onStation }) {
   );
 }
 
-export function LineCard({ line, color, stations, prof, iso, hidden, year, focusReq, onShow, onOnly, onClose, onShowMap, onStation }) {
+export function LineCard({ line, color, stations, prof, iso, hidden, year, focusReq, onShow, onOnly, names, onNames, onClose, onShowMap, onStation }) {
   const head = useHeadingFocus(focusReq);
   // Kennzahlen beziehen sich auf Bahnhofseinträge der Linie (nicht auf alle Trassenpunkte)
   // Bahnhöfe = Stationsknoten (s.node); Bahnsteig-/Ebenen-Einträge bleiben erhalten und werden getrennt genannt
@@ -177,6 +177,7 @@ export function LineCard({ line, color, stations, prof, iso, hidden, year, focus
           <div className="actions">
             <button type="button" className="chip" onClick={onShowMap}>Linie auf Karte zeigen</button>
             <button type="button" className="chip" onClick={onOnly}>Nur diese Linie</button>
+            <button type="button" className="chip" onClick={onNames} aria-pressed={!names}>{names ? 'Namen aus' : 'Namen ein'}</button>
             <button type="button" className="chip" onClick={onClose}>Gesamtnetz</button>
           </div>
           <p className="hint small">Form = Herkunft des Werts, nicht Messgenauigkeit; «ca.», «rund» und Spannen stehen am Wert. Längsprofil der längsten durchgehenden Strecke · Höhen ü. NHN · Trasse interpoliert und geglättet, keine Vermessung.</p>

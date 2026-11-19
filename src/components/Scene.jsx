@@ -21,8 +21,10 @@ function CameraRig({ api, Y, SY, exag, selected }) {
   const fly = (pos, target, ms = 900) => {
     if (!controls) return;
     const p1 = new THREE.Vector3(...pos); const q1 = new THREE.Vector3(...target);
-    if (reducedMotion() || ms <= 0) { anim.current = null; camera.position.copy(p1); controls.target.copy(q1); controls.update(); return; }
-    anim.current = { t0: performance.now(), ms, p0: camera.position.clone(), p1, q0: controls.target.clone(), q1 };
+    // Restschwung einer vorherigen Drehung (Dämpfung) darf den Flug nicht verdrehen
+    const damp = controls.enableDamping; controls.enableDamping = false; controls.update();
+    if (reducedMotion() || ms <= 0) { anim.current = null; camera.position.copy(p1); controls.target.copy(q1); controls.update(); controls.enableDamping = damp; return; }
+    anim.current = { t0: performance.now(), ms, p0: camera.position.clone(), p1, q0: controls.target.clone(), q1, damp };
   };
 
   // Blickrichtung (horizontal) des Nutzers beibehalten
@@ -108,7 +110,7 @@ function CameraRig({ api, Y, SY, exag, selected }) {
     camera.position.lerpVectors(a.p0, a.p1, k);
     controls.target.lerpVectors(a.q0, a.q1, k);
     controls.update();
-    if (t >= 1) anim.current = null;
+    if (t >= 1) { controls.enableDamping = a.damp; anim.current = null; }
   });
   return null;
 }

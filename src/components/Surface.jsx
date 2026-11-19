@@ -97,6 +97,8 @@ export default function Surface({ extent, kind, opacity, depthBottom }) {
     return () => { alive = false; };
   }, [kind, bbox, tex]);
 
+  // Kartentextur beim Abbau freigeben
+  useEffect(() => () => tex?.t.dispose(), [tex]);
   const geo = useMemo(() => planeGeometry(extent, tex?.m0, tex?.m1), [extent, tex]);
   useEffect(() => () => geo.dispose(), [geo]);
 

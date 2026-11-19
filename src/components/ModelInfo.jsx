@@ -14,6 +14,7 @@ export default function ModelInfo({ exag, onClose }) {
         <li><b>Zahlen ohne ≈</b> stammen aus einer Quelle (Wikipedia). <b>≈</b> heißt «ca.»/«rund» in der Quelle, abgeleitet oder Modellschätzung (OSM-Ebene bzw. Bauart). Details unter «Quelle» in der Bahnhofskarte.</li>
         <li><b>Schematisch:</b> Röhren und Bahnsteige sind Symbole, nicht maßstäblich. Senkrechte Linien zeigen keine echten Zugänge; Umstiege verbinden Bahnhöfe unter 300 m Abstand, keine vermessenen Gänge.</li>
         <li><b>Längsprofil:</b> längste durchgehende Strecke einer Linie, Trasse interpoliert und geglättet. Kreis = Quellenangabe, Quadrat = abgeleitet, hohler Kreis = Modellschätzung.</li>
+        <li><b>Jahr:</b> zeigt Betriebszustand und Namen zum Jahresende (Eröffnungen, Schließungen, Geisterbahnhöfe). Lage, Gelände und Stadtplan sind heutig – keine Rekonstruktion früherer Bauzustände.</li>
         <li><b>Kennzahlen</b> gelten für das ganze Netz zum Jahresende; km = Summe je Linie (gemeinsame Abschnitte doppelt).</li>
         <li><b>Bedienung:</b> ziehen = drehen · Rechtsklick/zwei Finger = verschieben · Rad/Spreizen = zoomen · Esc = zurück.</li>
       </ul>
