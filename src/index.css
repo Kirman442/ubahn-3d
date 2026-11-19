@@ -308,3 +308,7 @@ header h1 { font-size: 1.3rem; letter-spacing: -0.01em; color: var(--ink); }
 .city-sel select { font: 600 0.9rem inherit; font-family: inherit; color: var(--ink); background: var(--chip); border: 1px solid var(--glass-edge); border-radius: 12px; padding: 6px 26px 6px 10px; }
 @media (min-width: 981px) { .views { left: auto; right: 12px; transform: none; } }
 @media (max-width: 980px) { .city-seg { display: none; } .city-sel { display: block; margin-left: auto; } }
+
+/* Liniensignets im Bahnhofsschild */
+.lbl i.lb { font: 700 9px/1 system-ui, sans-serif; font-style: normal; color: #fff; padding: 2px 3px; border-radius: 3px; margin-right: 3px; display: inline-block; vertical-align: 1px; }
+.lbl i.lb.dk { color: #1A1E23; }

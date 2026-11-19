@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
+import { lineBg, LINE_COLOR } from '../lib/city';
+
+// helle Linienfarben (gelb) mit dunkler Schrift
+const light = (hex) => { const n = parseInt((hex || '#000').slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 > 170; };
+const signets = (lines) => (lines || []).map((l) => `<i class="lb${light(LINE_COLOR[l]) ? ' dk' : ''}" style="background:${lineBg(l)}">${l}</i>`).join('');
 
 // Подписи — DOM поверх холста. Ничего не скрываем: подписи могут накладываться,
 // ближняя к камере лежит сверху (z-index), как в 3d-metro. Набор меняется только
@@ -20,7 +25,7 @@ export default function Labels({ items, overlay }) {
       else { e = { key: it.key, el: document.createElement('div'), shown: false }; e.el.style.display = 'none'; root.appendChild(e.el); }
       e.el.className = `lbl${it.ghost ? ' ghost' : ''}${it.strong ? ' strong' : ''}${it.focus ? ' focus' : ''}${it.bg ? ' bg' : ''}`;
       e.el.style.setProperty('--c', it.color);
-      e.el.innerHTML = `${it.text}${it.depth ? `<b>${it.depth}</b>` : ''}`;
+      e.el.innerHTML = `${signets(it.lines)}${it.text}${it.depth ? `<b>${it.depth}</b>` : ''}`;
       e.it = it;
       return e;
     });

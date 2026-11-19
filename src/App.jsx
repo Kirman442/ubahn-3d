@@ -7,7 +7,8 @@ import { END_YEAR, DEFAULT_EXAG, DEEP_LABEL } from './lib/config';
 import { CITIES, CITY, LINE_COLOR, lineBg, setCity as applyCity, cityFromHash } from './lib/city';
 import ModelInfo from './components/ModelInfo';
 import { prepare, makeY, surfaceY, lineChain, lineProfile, isUnderground } from './lib/model';
-import { depthText, statusShort } from './lib/depth';
+import { depthText, statusShort, isApprox } from './lib/depth';
+import { fmtM } from './lib/colors';
 import { isoForYear, stateAt, sectionOpenAt, interruptionAt, nameAt, formatDate, normDate, yearOf } from './lib/time';
 
 const load = (name) => fetch(`/data/${CITY.data}${name}`, { cache: 'no-cache' }).then((r) => {
@@ -17,7 +18,7 @@ const load = (name) => fetch(`/data/${CITY.data}${name}`, { cache: 'no-cache' })
 
 const saved = (k, fb) => { try { return localStorage.getItem(k) || fb; } catch { return fb; } };
 const START_THEME = saved('ubahn3d.theme', typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dunkel' : 'hell');
-const DEFAULT_OPTS = { theme: START_THEME, style: saved('ubahn3d.style', 'neu'), exag: DEFAULT_EXAG, surface: 'map', surfOp: 0.55, mode: 'rel', color: 'line', labels: 'deep', shafts: true, grid: true, levels: true, transfers: true };
+const DEFAULT_OPTS = { theme: START_THEME, style: saved('ubahn3d.style', 'neu'), exag: DEFAULT_EXAG, surface: 'map', surfOp: 0.55, mode: 'rel', color: 'line', labels: 'key', shafts: true, grid: true, levels: true, transfers: true };
 const cssVar = (n, fb) => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || fb;
 
 // Stadtwahl: Stadt steht in der Adresse (#nuernberg). Beim Wechsel wird die Stadtansicht neu aufgebaut
@@ -122,24 +123,52 @@ function CityApp({ city, choose, opts, setOpts }) {
   const allHidden = hiddenLines.size >= LINES.length;
 
   // подписи: набор зависит только от настроек и выбора, не от камеры
+  // Nachbarn je Linie und Bahnhof im aktuellen Jahr (sichtbare Abschnitte): Endbahnhof = 1 Nachbar;
+  // Umsteigeknoten = Linien mit unterschiedlichen Nachbarn (gemeinsam befahrene Strecke zählt nicht)
+  const nbrs = useMemo(() => {
+    const nb = {};
+    if (!view) return nb;
+    const add = (k, n) => { (nb[k] ||= new Set()).add(n); };
+    data.sections.forEach((p, i) => { if (!view.sectionVisible[i] || p.dir === 'B') return; add(`${p.line}|${p.from}`, p.to); add(`${p.line}|${p.to}`, p.from); });
+    return nb;
+  }, [data, view]);
+
+  // подписи: набор зависит только от настроек и выбора, не от камеры.
+  // Ein Schild je Bahnhof (Knoten): Liniensignets aller Linien + Tiefe bzw. Tiefenspanne.
+  // Gewählter/überfahrener Bahnhof bekommt ein eigenes Schild mit seiner genauen Tiefe.
   const labelItems = useMemo(() => {
     if (!view) return [];
-    const want = new Map();
-    const add = (s, strong) => { if (s && (!want.has(s.id) || strong)) want.set(s.id, { s, strong }); };
-    // Priorität: gewählt/überfahren → untersuchte Linie → Hintergrund (bei Linienfokus abgeschwächt)
-    // «Namen aus» in der Linienkarte: nur gewählter/überfahrener Bahnhof bleibt benannt
-    if (!(focusLine && !lineNames)) view.stations.forEach((s) => {
-      if (opts.labels === 'all' || (opts.labels === 'deep' && s.z <= -DEEP_LABEL)) add(s, false);
-      if (focusLine && s.line === focusLine) add(s, false);
-    });
-    add(selStation, true);
-    add(hoverStation, true);
-    return [...want.values()].map(({ s, strong }) => ({
-      key: s.id, x: s.x, y: Y(s.z, s.ground), z: s.zz, text: nameAt(s, iso), depth: depthText(s),
+    const nodes = new Map();
+    view.stations.forEach((s) => { if (!nodes.has(s.node)) nodes.set(s.node, []); nodes.get(s.node).push(s); });
+    const strongIds = new Set([selStation?.id, hoverStation?.id].filter(Boolean));
+    const out = [];
+    const one = (s, strong) => ({
+      key: s.id, x: s.x, y: Y(s.z, s.ground), z: s.zz, text: nameAt(s, iso), depth: depthText(s), lines: [s.line],
       color: s.color, ghost: s.state === 'interrupted', strong,
       focus: !!focusLine && s.line === focusLine, bg: !!focusLine && s.line !== focusLine && !strong,
-    }));
-  }, [view, opts.labels, focusLine, lineNames, selStation, hoverStation, Y, iso]);
+    });
+    const showNames = !(focusLine && !lineNames); // «Namen aus» in der Linienkarte
+    if (showNames) nodes.forEach((list, node) => {
+      if (list.some((s) => strongIds.has(s.id))) return;
+      const lines = [...new Set(list.map((s) => s.line))];
+      const nset = list.map((s) => [...(nbrs[`${s.line}|${s.name}`] || [])].sort().join('|'));
+      const key = list.some((s) => (nbrs[`${s.line}|${s.name}`]?.size || 0) <= 1) || new Set(nset).size > 1;
+      const want = opts.labels === 'all' || (opts.labels === 'key' && key)
+        || (opts.labels === 'deep' && list.some((s) => s.z <= -DEEP_LABEL)) || (focusLine && lines.includes(focusLine));
+      if (!want) return;
+      const top = list.reduce((a, b) => (b.z > a.z ? b : a));
+      const zs = list.map((s) => s.z); const lo = Math.min(...zs); const hi = Math.max(...zs);
+      const approx = list.some(isApprox);
+      const depth = hi - lo < 0.5 ? depthText(top) : `${approx ? '≈ ' : ''}${fmtM(lo, 1)}…${fmtM(hi, 1)} m`;
+      const onFocus = !!focusLine && lines.includes(focusLine);
+      out.push({ key: `n:${node}`, x: top.x, y: Y(top.z, top.ground), z: top.zz, text: nameAt(top, iso), depth,
+        lines: CITY.lines.map((l) => l.id).filter((l) => lines.includes(l)), color: (onFocus ? list.find((s) => s.line === focusLine) : top).color,
+        ghost: list.every((s) => s.state === 'interrupted'), strong: false, focus: onFocus, bg: !!focusLine && !onFocus });
+    });
+    if (selStation) out.push(one(selStation, true));
+    if (hoverStation && hoverStation.id !== selStation?.id) out.push(one(hoverStation, true));
+    return out;
+  }, [view, nbrs, opts.labels, focusLine, lineNames, selStation, hoverStation, Y, iso]);
 
   const stats = useMemo(() => {
     // Bahnhöfe = Stationsknoten (s.node), nicht Bahnsteig-/Ebenen-Einträge; siehe assignNodes()
