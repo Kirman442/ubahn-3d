@@ -18,7 +18,7 @@ export default function Labels({ items, overlay }) {
       let e = old.get(it.key);
       if (e) old.delete(it.key);
       else { e = { key: it.key, el: document.createElement('div'), shown: false }; e.el.style.display = 'none'; root.appendChild(e.el); }
-      e.el.className = `lbl${it.ghost ? ' ghost' : ''}${it.strong ? ' strong' : ''}`;
+      e.el.className = `lbl${it.ghost ? ' ghost' : ''}${it.strong ? ' strong' : ''}${it.focus ? ' focus' : ''}${it.bg ? ' bg' : ''}`;
       e.el.style.setProperty('--c', it.color);
       e.el.innerHTML = `${it.text}${it.depth ? `<b>${it.depth}</b>` : ''}`;
       e.it = it;
@@ -41,7 +41,8 @@ export default function Labels({ items, overlay }) {
       if (on !== e.shown) { e.el.style.display = on ? 'block' : 'none'; e.shown = on; }
       if (!on) continue;
       e.el.style.transform = `translate(${(((v.x + 1) / 2) * W).toFixed(1)}px, ${(((1 - v.y) / 2) * H).toFixed(1)}px) translate(-50%, -135%)`;
-      e.el.style.zIndex = String(it.strong ? 200000 : Math.max(1, 100000 - Math.round(dist / 5)));
+      // Stapelung nach Priorität: gewählt/überfahren → untersuchte Linie → Hintergrund; innerhalb: näher liegt oben
+      e.el.style.zIndex = String(it.strong ? 300000 : (it.focus ? 200000 : 100000) - Math.min(99999, Math.round(dist / 5)));
     }
   });
 

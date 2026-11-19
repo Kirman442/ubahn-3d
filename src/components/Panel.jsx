@@ -1,21 +1,57 @@
+import { useMemo, useState } from 'react';
 import { LINES, DEEP_LABEL } from '../lib/config';
 import { RAMP_CSS } from '../lib/colors';
 import { nameAt } from '../lib/time';
 import { depthText, statusShort, isApprox } from '../lib/depth';
 
-const Seg = ({ value, set, options }) => (
-  <div className="seg" role="group">
+const Seg = ({ value, set, options, labelledby }) => (
+  <div className="seg" role="group" aria-labelledby={labelledby}>
     {options.map(([v, label]) => (
       <button key={v} type="button" aria-pressed={value === v} onClick={() => set(v)}>{label}</button>
     ))}
   </div>
 );
 
+const norm = (t) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ß/g, 'ss');
+
+// Bahnhofssuche: alle im gewählten Jahr sichtbaren Bahnhöfe, Auswahl öffnet dieselbe Karte
+function StationSearch({ stations, iso, year, onStation }) {
+  const [q, setQ] = useState('');
+  const t = q.trim();
+  const res = useMemo(() => {
+    if (t.length < 2) return [];
+    const n = norm(t); const seen = new Set();
+    return stations.filter((s) => norm(nameAt(s, iso)).includes(n) || norm(s.name).includes(n))
+      .sort((a, b) => nameAt(a, iso).localeCompare(nameAt(b, iso), 'de') || a.line.localeCompare(b.line))
+      .filter((s) => { const k = `${s.node}|${s.line}`; if (seen.has(k)) return false; seen.add(k); return true; })
+      .slice(0, 12);
+  }, [t, stations, iso]);
+  return (
+    <div className="search" role="search">
+      <h2 id="h-search"><label htmlFor="st-q">Bahnhof suchen</label></h2>
+      <input id="st-q" type="search" autoComplete="off" placeholder="Name, z. B. Hermannplatz" value={q} onChange={(e) => setQ(e.target.value)}
+        aria-describedby="st-q-n" />
+      <p id="st-q-n" className="sr" aria-live="polite">{t.length >= 2 ? `${res.length}${res.length === 12 ? ' oder mehr' : ''} Treffer` : ''}</p>
+      {res.length > 0 && (
+        <ul className="results" aria-label="Suchergebnisse">
+          {res.map((s) => (
+            <li key={s.id}><button type="button" onClick={() => onStation(s.id)} aria-label={`${nameAt(s, iso)}, ${s.line}, ${depthText(s)}`}>
+              <span className="badge sm" style={{ background: s.color }}>{s.line}</span><span>{nameAt(s, iso)}</span><span className="d">{depthText(s)}</span>
+            </button></li>
+          ))}
+        </ul>
+      )}
+      {t.length >= 2 && !res.length && <p className="hint small">Kein Bahnhof «{t}» im Jahr {year} (oder Linie ausgeblendet).</p>}
+    </div>
+  );
+}
+
 export default function Panel(p) {
-  const { stats, hiddenLines, toggleLine, focusLine, onLine, opts, setOpt, deepest, iso, year, onStation } = p;
+  const { stats, hiddenLines, toggleLine, showAll, focusLine, onLine, opts, setOpt, deepest, iso, year, onStation, stations, open, setOpen } = p;
   const md = stats.maxDepthSt;
   return (
-    <aside className="panel">
+    <aside className={`panel${open ? ' open' : ''}`} id="panel" aria-label="Steuerung">
+      <button type="button" className="close panel-close" onClick={() => setOpen(false)} aria-label="Steuerung schließen">×</button>
       <div className="stats">
         <div className="stat" title="Stationsknoten in Betrieb; mehrere Bahnsteig-/Ebenen-Einträge eines Bahnhofs zählen einmal">
           <span className="v">{stats.stations}</span><span className="k">Bahnhöfe</span></div>
@@ -26,19 +62,22 @@ export default function Panel(p) {
       </div>
       <p className="hint small scope">Gesamtnetz zum Jahresende {year} · unabhängig von ausgeblendeten Linien · km = Summe je Linie (gemeinsame Abschnitte doppelt)</p>
 
-      <h2>Linien</h2>
-      <ul className="lines">
+      <StationSearch stations={stations} iso={iso} year={year} onStation={onStation} />
+
+      <h2 id="h-lines">Linien {hiddenLines.size > 0 && <button type="button" className="linkbtn" onClick={showAll}>Alle anzeigen</button>}</h2>
+      <ul className="lines" aria-labelledby="h-lines">
         {LINES.map((l) => {
           const off = hiddenLines.has(l.id);
           const n = stats.byLine[l.id] || 0;
           const rec = stats.recByLine[l.id] || 0;
           return (
             <li key={l.id} className={focusLine === l.id ? 'focus' : ''}>
-              <button type="button" className={off ? 'off' : ''} onClick={() => toggleLine(l.id)} aria-pressed={!off} title="ein/aus">
-                <span className="swatch" style={{ background: l.color }} /><b>{l.id}</b>
+              <button type="button" className={`tog${off ? ' off' : ''}`} onClick={() => toggleLine(l.id)} aria-pressed={!off}
+                aria-label={`Linie ${l.id} anzeigen`} title={off ? 'ausgeblendet – einblenden' : 'eingeblendet – ausblenden'}>
+                <span className="box" aria-hidden="true">{off ? '' : '✓'}</span><span className="swatch" style={{ background: l.color }} /><b>{l.id}</b>
               </button>
               <span className="muted" title={rec !== n ? `${n} Bahnhöfe, ${rec} Bahnsteig-/Ebenen-Einträge` : `${n} Bahnhöfe`}>{n ? `${n} Bhf.` : '–'}</span>
-              <button type="button" className="linkbtn" disabled={!n || off} onClick={() => onLine(l.id)}>Profil</button>
+              <button type="button" className="linkbtn" disabled={!n || off} onClick={() => onLine(l.id)} aria-label={`Profil ${l.id}`}>Profil</button>
             </li>
           );
         })}
@@ -52,50 +91,10 @@ export default function Panel(p) {
           <p><b>{stats.closedNoStop}</b> {stats.closedNoStop === 1 ? 'Bahnhof' : 'Bahnhöfe'} vorübergehend ohne Halt (stillgelegt).</p></div>
       )}
 
-      <h2>Überhöhung <output>×{opts.exag}</output></h2>
-      <input className="range" type="range" min={1} max={200} step={1} value={opts.exag} onChange={(e) => setOpt('exag', Number(e.target.value))} aria-label="Vertikale Überhöhung" />
-      <p className="hint small">Höhenunterschiede {opts.exag}-fach vergrößert; Meterangaben bleiben unverändert. Kugeln und Röhren sind schematisch, nicht maßstäblich.</p>
-
-      <h2>Oberfläche {opts.surface !== 'off' && <output>{Math.round(opts.surfOp * 100)} %</output>}</h2>
-      <Seg value={opts.surface} set={(v) => setOpt('surface', v)} options={[['map', 'Stadtplan'], ['plain', 'Fläche'], ['off', 'aus']]} />
-      {opts.surface !== 'off' && (
-        <input className="range" type="range" min={0.1} max={1} step={0.05} value={opts.surfOp} onChange={(e) => setOpt('surfOp', Number(e.target.value))} aria-label="Deckkraft der Oberfläche" />
-      )}
-      <p className="hint small">Von oben: Stadtplan · von unten: Erdreich (braun)</p>
-
-      <h2>Höhe</h2>
-      <Seg value={opts.mode} set={(v) => setOpt('mode', v)} options={[['rel', 'Tiefe unter Gelände'], ['abs', 'ü. NHN']]} />
-      <p className="hint small">{opts.mode === 'rel'
-        ? 'Tiefe relativ zum lokalen Geländeniveau am Bahnhof (Modell, DGM1 geglättet) – nicht der Abstand zur Straße direkt über jedem Tunnelpunkt.'
-        : 'Absolute Höhen über Normalhöhennull. Die Kartenfläche bleibt eben (schematisch); ein positiver NHN-Wert heißt nicht «über der Straße».'}</p>
-
-      <h2>Farbe</h2>
-      <Seg value={opts.color} set={(v) => setOpt('color', v)} options={[['line', 'nach Linie'], ['depth', 'nach Tiefe']]} />
-      {opts.color === 'depth' && (
-        <div className="ramp-box">
-          <p className="small"><b>Tiefe unter Geländeniveau</b> (feste Skala, auch bei NHN)</p>
-          <div className="ramp"><span style={{ background: RAMP_CSS }} /></div>
-          <div className="ramp-ticks"><small>0</small><small>−5,5</small><small>−11</small><small>−16,5</small><small>≤ −22 m</small></div>
-          <p className="small"><i className="sw-above" /> oberirdisch / Geländeniveau</p>
-        </div>
-      )}
-
-      <h2>Namen</h2>
-      <Seg value={opts.labels} set={(v) => setOpt('labels', v)} options={[['none', 'keine'], ['deep', `ab ${DEEP_LABEL} m`], ['all', 'alle']]} />
-
-      <h2>Ebenen</h2>
-      <div className="checks">
-        <label><input type="checkbox" checked={opts.shafts} onChange={(e) => setOpt('shafts', e.target.checked)} /> Verbindung zum Gelände</label>
-        <label><input type="checkbox" checked={opts.grid} onChange={(e) => setOpt('grid', e.target.checked)} /> Raster</label>
-        <label><input type="checkbox" checked={opts.levels} onChange={(e) => setOpt('levels', e.target.checked)} /> Tiefenebenen</label>
-        <label><input type="checkbox" checked={opts.transfers} onChange={(e) => setOpt('transfers', e.target.checked)} /> Umstiege (Nähe)</label>
-      </div>
-      <p className="hint small">Schematisch: senkrechte Linien zeigen keine echten Zugänge; Umstiege verbinden Bahnhöfe verschiedener Linien unter 300 m Abstand, nicht vermessene Gänge.</p>
-
       {deepest.length > 0 && (
         <>
-          <h2>Tiefste Bahnhöfe (Tunnel)</h2>
-          <ol className="deep">
+          <h2 id="h-deep">Tiefste Bahnhöfe (Tunnel)</h2>
+          <ol className="deep" aria-labelledby="h-deep">
             {deepest.map((s) => (
               <li key={s.id}><button type="button" onClick={() => onStation(s.id)} style={{ '--c': s.color }}
                 aria-label={`${nameAt(s, iso)}, ${s.line}, ${depthText(s)}`}>
@@ -106,7 +105,51 @@ export default function Panel(p) {
           <p className="hint small">Nur Tunnelbahnhöfe · Tiefe unter lokalem Geländeniveau wie auf der Karte · ohne ≈: Zahl aus Quelle · ≈: «ca.»/«rund» in der Quelle, abgeleitet oder Modellschätzung</p>
         </>
       )}
-      <p className="hint">Gelände: DGM1 © Geoportal Berlin (dl-de/zero-2-0). Tiefen: Quellenangaben aus Wikipedia (CC BY-SA 4.0) für einzelne Bahnhöfe, sonst Modellschätzung nach OSM-Bahnsteigebene oder Bauart. Linke Maus: drehen · rechte: verschieben · Rad: zoomen.</p>
+      <h2 id="h-exag">Überhöhung <output>×{opts.exag}</output></h2>
+      <input className="range" type="range" min={1} max={200} step={1} value={opts.exag} onChange={(e) => setOpt('exag', Number(e.target.value))} aria-label="Vertikale Überhöhung" aria-describedby="exag-hint" />
+      <p className="hint small" id="exag-hint">Höhenunterschiede {opts.exag}-fach vergrößert; Meterangaben bleiben unverändert. Kugeln und Röhren sind schematisch, nicht maßstäblich.</p>
+
+      <h2 id="h-mode">Höhe</h2>
+      <Seg value={opts.mode} set={(v) => setOpt('mode', v)} labelledby="h-mode" options={[['rel', 'Tiefe unter Gelände'], ['abs', 'ü. NHN']]} />
+      <p className="hint small">{opts.mode === 'rel'
+        ? 'Tiefe relativ zum lokalen Geländeniveau am Bahnhof (Modell, DGM1 geglättet) – nicht der Abstand zur Straße direkt über jedem Tunnelpunkt.'
+        : 'Absolute Höhen über Normalhöhennull. Die Kartenfläche bleibt eben (schematisch); ein positiver NHN-Wert heißt nicht «über der Straße».'}</p>
+
+      <details className="darst">
+        <summary>Darstellung</summary>
+      <h2 id="h-surf">Oberfläche {opts.surface !== 'off' && <output>{Math.round(opts.surfOp * 100)} %</output>}</h2>
+      <Seg value={opts.surface} set={(v) => setOpt('surface', v)} labelledby="h-surf" options={[['map', 'Stadtplan'], ['plain', 'Fläche'], ['off', 'aus']]} />
+      {opts.surface !== 'off' && (
+        <input className="range" type="range" min={0.1} max={1} step={0.05} value={opts.surfOp} onChange={(e) => setOpt('surfOp', Number(e.target.value))} aria-label="Deckkraft der Oberfläche" />
+      )}
+      <p className="hint small">Von oben: Stadtplan · von unten: Erdreich (braun)</p>
+
+      <h2 id="h-color">Farbe</h2>
+      <Seg value={opts.color} set={(v) => setOpt('color', v)} labelledby="h-color" options={[['line', 'nach Linie'], ['depth', 'nach Tiefe']]} />
+      {opts.color === 'depth' && (
+        <div className="ramp-box">
+          <p className="small"><b>Tiefe unter Geländeniveau</b> (feste Skala, auch bei NHN)</p>
+          <div className="ramp"><span style={{ background: RAMP_CSS }} /></div>
+          <div className="ramp-ticks"><small>0</small><small>−5,5</small><small>−11</small><small>−16,5</small><small>≤ −22 m</small></div>
+          <p className="small"><i className="sw-above" /> oberirdisch / Geländeniveau</p>
+        </div>
+      )}
+
+      <h2 id="h-names">Namen</h2>
+      <Seg value={opts.labels} labelledby="h-names" set={(v) => setOpt('labels', v)} options={[['none', 'keine'], ['deep', `ab ${DEEP_LABEL} m`], ['all', 'alle']]} />
+      <p className="hint small">Gewählter Bahnhof und Bahnhöfe der untersuchten Linie werden immer benannt, auch bei «keine». Namen dürfen sich überlagern; der gewählte liegt oben.</p>
+
+      <h2 id="h-layers">Ebenen</h2>
+      <div className="checks" role="group" aria-labelledby="h-layers">
+        <label><input type="checkbox" checked={opts.shafts} onChange={(e) => setOpt('shafts', e.target.checked)} /> Verbindung zum Gelände</label>
+        <label><input type="checkbox" checked={opts.grid} onChange={(e) => setOpt('grid', e.target.checked)} /> Raster</label>
+        <label><input type="checkbox" checked={opts.levels} onChange={(e) => setOpt('levels', e.target.checked)} /> Tiefenebenen</label>
+        <label><input type="checkbox" checked={opts.transfers} onChange={(e) => setOpt('transfers', e.target.checked)} /> Umstiege (Nähe)</label>
+      </div>
+      <p className="hint small">Schematisch: senkrechte Linien zeigen keine echten Zugänge; Umstiege verbinden Bahnhöfe verschiedener Linien unter 300 m Abstand, nicht vermessene Gänge.</p>
+      </details>
+
+      <p className="hint">Gelände: DGM1 © Geoportal Berlin (dl-de/zero-2-0). Tiefen: Quellenangaben aus Wikipedia (CC BY-SA 4.0) für einzelne Bahnhöfe, sonst Modellschätzung nach OSM-Bahnsteigebene oder Bauart.</p>
     </aside>
   );
 }

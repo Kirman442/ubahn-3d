@@ -27,6 +27,9 @@ export default function App() {
   const [focusLine, setFocusLine] = useState(null); // untersuchte Linie, unabhängig vom gewählten Bahnhof
   const [preset, setPreset] = useState('iso');      // aktiver Kamera-Preset; null nach freier Bewegung
   const [hover, setHover] = useState(null);
+  const [panelOpen, setPanelOpen] = useState(() => typeof window === 'undefined' || window.innerWidth > 980);
+  const [focusReq, setFocusReq] = useState(0);  // >0: Karte nach ausdrücklichem Öffnen fokussieren
+  const opener = useRef(null);                 // Element, von dem aus die Karte geöffnet wurde
   const scene = useRef();
   const main = useRef();
   const setOpt = (k, v) => setOpts((o) => ({ ...o, [k]: v }));
@@ -86,6 +89,7 @@ export default function App() {
     if (!view) return [];
     const want = new Map();
     const add = (s, strong) => { if (s && (!want.has(s.id) || strong)) want.set(s.id, { s, strong }); };
+    // Priorität: gewählt/überfahren → untersuchte Linie → Hintergrund (bei Linienfokus abgeschwächt)
     view.stations.forEach((s) => {
       if (opts.labels === 'all' || (opts.labels === 'deep' && s.z <= -DEEP_LABEL)) add(s, false);
       if (focusLine && s.line === focusLine) add(s, false);
@@ -95,6 +99,7 @@ export default function App() {
     return [...want.values()].map(({ s, strong }) => ({
       key: s.id, x: s.x, y: Y(s.z, s.ground), z: s.zz, text: nameAt(s, iso), depth: depthText(s),
       color: s.color, ghost: s.state === 'interrupted', strong,
+      focus: !!focusLine && s.line === focusLine, bg: !!focusLine && s.line !== focusLine && !strong,
     }));
   }, [view, opts.labels, focusLine, selStation, hoverStation, Y, iso]);
 
@@ -144,16 +149,28 @@ export default function App() {
     return next;
   });
   // Bahnhof wählen: Linienfokus bleibt; Bahnhof einer anderen Linie (z. B. Umstieg) wechselt den Fokus auf deren Linie
+  // Öffnen aus der Oberfläche (nicht aus der Szene): Fokus in die Karte, beim Schließen zurück zum Auslöser
+  const noteOpener = () => {
+    const a = document.activeElement;
+    if (a && a !== document.body && a.tagName !== 'CANVAS' && !a.closest('.card')) opener.current = a;
+    if (a && a !== document.body && a.tagName !== 'CANVAS') setFocusReq((n) => n + 1);
+  };
+  const returnFocus = () => { const o = opener.current; opener.current = null; if (o?.isConnected) setTimeout(() => o.focus(), 0); };
   const pickStation = (id, fly = true) => {
+    noteOpener();
     setSel({ kind: 'station', id });
     const s = view?.byId[id];
     if (s && focusLine && s.line !== focusLine) setFocusLine(s.line);
     if (s && fly) { scene.current?.focus(s); setPreset(null); }
   };
-  const pickLine = (line) => { setSel({ kind: 'line', line }); setFocusLine(line); };
-  const clearAll = () => { setSel(null); setFocusLine(null); };
+  const pickLine = (line) => { noteOpener(); setSel({ kind: 'line', line }); setFocusLine(line); };
+  const clearAll = () => { setSel(null); setFocusLine(null); returnFocus(); };
   // ein Schritt zurück: Bahnhof → Profil der untersuchten Linie → Gesamtübersicht
-  const stepBack = () => { if (sel?.kind === 'station' && focusLine) setSel({ kind: 'line', line: focusLine }); else clearAll(); };
+  const stepBack = () => {
+    if (sel?.kind === 'station' && focusLine) { setSel({ kind: 'line', line: focusLine }); if (document.activeElement?.closest?.('.card')) setFocusReq((n) => n + 1); } else clearAll();
+  };
+  const showAllLines = () => setHiddenLines(new Set());
+  const onlyLine = (l) => setHiddenLines(new Set(LINES.map((x) => x.id).filter((x) => x !== l)));
   const lineStations = (l) => view?.stations.filter((s) => s.line === l) || [];
   const camView = (v) => { scene.current?.view(v, focusLine ? lineStations(focusLine) : null); setPreset(v); };
   const showLineOnMap = () => { if (scene.current?.frame(lineStations(focusLine), 'iso')) setPreset(null); };
@@ -194,7 +211,7 @@ export default function App() {
     <div className="app">
       <header>
         <h1>Berliner U-Bahn in der Tiefe <span className="yr">{year}</span></h1>
-        <p>Tunnel, Hochbahn und Bahnhöfe in echter Lage – Höhenunterschiede ×{opts.exag} überhöht, Meterangaben unverändert · schematisch</p>
+        <p>Vereinfachtes Höhenmodell von Tunneln, Hochbahnen und Bahnhöfen – Höhenunterschiede ×{opts.exag} vergrößert, Meterangaben unverändert</p>
       </header>
       <main ref={main}>
         {error && <div className="error">Daten konnten nicht geladen werden: {error}</div>}
@@ -206,17 +223,18 @@ export default function App() {
         )}
         {tip}
         {data && (
-          <Panel stats={stats} hiddenLines={hiddenLines} toggleLine={toggleLine} focusLine={focusLine} onLine={pickLine}
+          <Panel stats={stats} hiddenLines={hiddenLines} toggleLine={toggleLine} showAll={showAllLines} focusLine={focusLine} onLine={pickLine}
+            stations={view?.stations || []} open={panelOpen} setOpen={setPanelOpen}
             opts={opts} setOpt={setOpt} deepest={deepest} iso={iso} year={year} onStation={(id) => pickStation(id)} />
         )}
         {selStation && (
-          <StationCard s={selStation} iso={iso} ctx={focusLine}
+          <StationCard s={selStation} iso={iso} ctx={focusLine} focusReq={focusReq}
             transfers={view.transfers.filter((p) => p.includes(selStation.id)).map((p) => view.byId[p[0] === selStation.id ? p[1] : p[0]])}
             onClose={clearAll} onBack={stepBack} onFocus={() => { scene.current?.focus(selStation); setPreset(null); }}
             onLine={pickLine} onStation={(id) => pickStation(id)} />
         )}
         {selMissing && (
-          <div className="card" role="region" aria-label="Ausgewählter Bahnhof">
+          <section className="card" aria-label="Ausgewählter Bahnhof">
             <button type="button" className="close" onClick={stepBack} aria-label="Schließen">×</button>
             <div className="ttl"><span className="badge" style={{ background: LINE_COLOR[selMissing.r.line] }}>{selMissing.r.line}</span><strong>{selMissing.name}</strong></div>
             <p className="note">{selMissing.text}</p>
@@ -224,11 +242,11 @@ export default function App() {
               {selMissing.action && <button type="button" className="chip" onClick={selMissing.run}>{selMissing.action}</button>}
               <button type="button" className="chip" onClick={stepBack}>Auswahl aufheben</button>
             </div>
-          </div>
+          </section>
         )}
         {focusLine && lineInfo && sel?.kind === 'line' && (
           <LineCard line={focusLine} color={LINE_COLOR[focusLine]} stations={lineInfo.stations} prof={lineInfo.prof} iso={iso}
-            hidden={lineInfo.hidden} year={year} onShow={() => toggleLine(focusLine)}
+            hidden={lineInfo.hidden} year={year} focusReq={focusReq} onShow={() => toggleLine(focusLine)} onOnly={() => onlyLine(focusLine)}
             onClose={clearAll} onShowMap={showLineOnMap} onStation={(id) => pickStation(id)} />
         )}
         {allHidden && (
@@ -244,7 +262,11 @@ export default function App() {
                 title={v === 'side' && focusLine ? `Seitenansicht Linie ${focusLine}` : undefined}>{l}{v === 'side' && focusLine ? ` ${focusLine}` : ''}</button>
             ))}
           </div>
+          <p className="views-hint">Ziehen: drehen · Rechtsklick: schieben · Rad: zoomen</p>
         </div>
+        {!panelOpen && (
+          <button type="button" className="panel-toggle" aria-expanded={false} aria-controls="panel" onClick={() => setPanelOpen(true)}>Steuerung</button>
+        )}
         <TimeControl year={year} setYear={setYear} playing={playing} setPlaying={setPlaying} />
       </main>
     </div>

@@ -1,4 +1,11 @@
-import { Fragment } from 'react';
+import { Fragment, useEffect, useRef } from 'react';
+
+// Fokus nach ausdrücklichem Öffnen (Tastatur/Liste/Profil) auf die Überschrift der Karte setzen
+function useHeadingFocus(focusReq) {
+  const ref = useRef(null);
+  useEffect(() => { if (focusReq) ref.current?.focus({ preventScroll: true }); }, [focusReq]);
+  return ref;
+}
 import { formatDate, nameAt, stateAt, yearOf, INTERRUPTION_LABEL } from '../lib/time';
 import { depthText, depthNumber, statusShort, provenanceRows, provenanceNote, isApprox } from '../lib/depth';
 import { isUnderground } from '../lib/model';
@@ -9,14 +16,15 @@ const n0 = (v) => Math.round(v).toString();
 const LAGE = { Tunnel: 'Tunnel', Viadukt: 'Hochbahn (Viadukt)', Damm: 'Damm', Einschnitt: 'Einschnitt', Plan: 'ebenerdig' };
 const where = (z) => (z < -0.5 ? 'unter lokalem Geländeniveau' : z > 0.5 ? 'über lokalem Geländeniveau' : 'auf Geländeniveau');
 
-export function StationCard({ s, iso, ctx, transfers, onClose, onBack, onFocus, onLine, onStation }) {
+export function StationCard({ s, iso, ctx, transfers, focusReq, onClose, onBack, onFocus, onLine, onStation }) {
+  const head = useHeadingFocus(focusReq);
   const nameNow = nameAt(s, iso);
   const state = stateAt(s, iso);
   const pct = Math.min(100, (Math.max(0, -s.z) / 22) * 100);
   return (
-    <div className="card">
-      <button type="button" className="close" onClick={onClose} aria-label="Schließen">×</button>
-      <div className="ttl"><Badge line={s.line} color={s.color} /><strong>{nameNow}</strong></div>
+    <section className="card" aria-labelledby="card-ttl">
+      <button type="button" className="close" onClick={onClose} aria-label="Karte schließen">×</button>
+      <h2 className="ttl" id="card-ttl" tabIndex={-1} ref={head}><Badge line={s.line} color={s.color} /><span>{nameNow}</span><span className="sr"> – Bahnhof, Linie {s.line}</span></h2>
       {nameNow !== s.name && <p className="muted">heute: {s.name}</p>}
       {state === 'interrupted' && <p className="warn">Zu diesem Zeitpunkt ohne Halt</p>}
       <div className="depth">{depthNumber(s)}<small> m {where(s.z)}</small></div>
@@ -61,7 +69,7 @@ export function StationCard({ s, iso, ctx, transfers, onClose, onBack, onFocus, 
         {ctx && <button type="button" className="chip" onClick={onClose}>Gesamtnetz</button>}
         {s.wiki_de && <a href={`https://de.wikipedia.org/wiki/${encodeURIComponent(s.wiki_de.replace(/ /g, '_'))}`} target="_blank" rel="noreferrer">Wikipedia</a>}
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -117,7 +125,8 @@ function Profile({ prof, color, iso, onStation }) {
   );
 }
 
-export function LineCard({ line, color, stations, prof, iso, hidden, year, onShow, onClose, onShowMap, onStation }) {
+export function LineCard({ line, color, stations, prof, iso, hidden, year, focusReq, onShow, onOnly, onClose, onShowMap, onStation }) {
+  const head = useHeadingFocus(focusReq);
   // Kennzahlen beziehen sich auf Bahnhofseinträge der Linie (nicht auf alle Trassenpunkte)
   // Bahnhöfe = Stationsknoten (s.node); Bahnsteig-/Ebenen-Einträge bleiben erhalten und werden getrennt genannt
   const nodes = new Set(stations.map((s) => s.node)).size;
@@ -131,9 +140,9 @@ export function LineCard({ line, color, stations, prof, iso, hidden, year, onSho
   // Legende zählt die im Profil gezeichneten Marker (Hauptstrecke), sonst alle Einträge der Linie
   (prof ? prof.marks.map((m) => m.st) : stations).forEach((s) => { cnt[s.kind] = (cnt[s.kind] || 0) + 1; });
   return (
-    <div className="card">
-      <button type="button" className="close" onClick={onClose} aria-label="Schließen">×</button>
-      <div className="ttl"><Badge line={line} color={color} /><strong>Linie {line}</strong></div>
+    <section className="card" aria-labelledby="card-ttl">
+      <button type="button" className="close" onClick={onClose} aria-label="Karte schließen">×</button>
+      <h2 className="ttl" id="card-ttl" tabIndex={-1} ref={head}><Badge line={line} color={color} /><span>Linie {line}</span><span className="sr"> – Längsprofil</span></h2>
       {hidden ? (
         <div className="note-row"><p className="note">Linie {line} ist ausgeblendet.</p><button type="button" className="chip" onClick={onShow}>Linie {line} einblenden</button></div>
       ) : !stations.length ? <p className="muted">Im Jahr {year} noch nicht in Betrieb.</p> : (
@@ -147,6 +156,15 @@ export function LineCard({ line, color, stations, prof, iso, hidden, year, onSho
             <dt>Gelände an den Bf.</dt><dd>{n0(Math.min(...gr))}–{n0(Math.max(...gr))} m ü. NHN</dd>
           </dl>
           {prof && <Profile prof={prof} color={color} iso={iso} onStation={onStation} />}
+          <details className="stlist">
+            <summary>Alle Bahnhöfe der Linie ({stations.length})</summary>
+            <ol>
+              {(prof ? prof.marks.map((m) => m.st) : []).concat(stations.filter((x) => !prof || !prof.marks.some((m) => m.st.id === x.id)))
+                .map((x) => (
+                  <li key={x.id}><button type="button" className="link" onClick={() => onStation(x.id)}>{nameAt(x, iso)}</button> <span className="m">{depthText(x)}</span> <span className="muted">{statusShort(x)}</span></li>
+                ))}
+            </ol>
+          </details>
           <div className="legend-mini">
             <span><i className="earth-sw" />Gelände (DGM1, geglättet)</span>
             <span><i style={{ background: color }} />Modelltrasse</span>
@@ -158,11 +176,12 @@ export function LineCard({ line, color, stations, prof, iso, hidden, year, onSho
           </div>
           <div className="actions">
             <button type="button" className="chip" onClick={onShowMap}>Linie auf Karte zeigen</button>
+            <button type="button" className="chip" onClick={onOnly}>Nur diese Linie</button>
             <button type="button" className="chip" onClick={onClose}>Gesamtnetz</button>
           </div>
           <p className="hint small">Form = Herkunft des Werts, nicht Messgenauigkeit; «ca.», «rund» und Spannen stehen am Wert. Längsprofil der längsten durchgehenden Strecke · Höhen ü. NHN · Trasse interpoliert und geglättet, keine Vermessung.</p>
         </>
       )}
-    </div>
+    </section>
   );
 }
