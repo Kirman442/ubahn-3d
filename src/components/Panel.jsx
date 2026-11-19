@@ -107,7 +107,7 @@ export default function Panel(p) {
       )}
       <h2 id="h-exag">Überhöhung <output>×{opts.exag}</output></h2>
       <input className="range" type="range" min={1} max={200} step={1} value={opts.exag} onChange={(e) => setOpt('exag', Number(e.target.value))} aria-label="Vertikale Überhöhung" aria-describedby="exag-hint" />
-      <p className="hint small" id="exag-hint">Höhenunterschiede {opts.exag}-fach vergrößert; Meterangaben bleiben unverändert. Kugeln und Röhren sind schematisch, nicht maßstäblich.</p>
+      <p className="hint small" id="exag-hint">Höhen {opts.exag}-fach vergrößert, Meterangaben echt.</p>
 
       <h2 id="h-mode">Höhe</h2>
       <Seg value={opts.mode} set={(v) => setOpt('mode', v)} labelledby="h-mode" options={[['rel', 'Tiefe unter Gelände'], ['abs', 'ü. NHN']]} />
@@ -117,6 +117,8 @@ export default function Panel(p) {
 
       <details className="darst">
         <summary>Darstellung</summary>
+      <h2 id="h-style">Stil der Szene</h2>
+      <Seg value={opts.style} labelledby="h-style" set={(v) => setOpt('style', v)} options={[['neu', 'Erdreich'], ['klassisch', 'Klassisch']]} />
       <h2 id="h-surf">Oberfläche {opts.surface !== 'off' && <output>{Math.round(opts.surfOp * 100)} %</output>}</h2>
       <Seg value={opts.surface} set={(v) => setOpt('surface', v)} labelledby="h-surf" options={[['map', 'Stadtplan'], ['plain', 'Fläche'], ['off', 'aus']]} />
       {opts.surface !== 'off' && (

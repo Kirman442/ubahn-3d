@@ -4,6 +4,8 @@ import { TUBE_RADIUS, STATION_RADIUS } from '../lib/config';
 import { depthColor } from '../lib/colors';
 
 const sphere = new THREE.SphereGeometry(STATION_RADIUS, 20, 14);
+// Stil «neu»: größere Kugel passend zu den dickeren Röhren
+const sphereNeu = new THREE.SphereGeometry(STATION_RADIUS * 1.3, 24, 16);
 const ring = new THREE.TorusGeometry(STATION_RADIUS * 1.35, STATION_RADIUS * 0.16, 8, 40);
 ring.rotateX(Math.PI / 2);
 const selRing = new THREE.TorusGeometry(STATION_RADIUS * 1.9, STATION_RADIUS * 0.14, 8, 48);
@@ -13,7 +15,7 @@ const xraySphere = new THREE.SphereGeometry(STATION_RADIUS * 0.8, 16, 10);
 const useDispose = (objs) => useEffect(() => () => [].concat(objs).forEach((o) => o?.dispose?.()), [objs]);
 
 // ---------- трубки участков ----------
-function tubeGeometry(sec, Y, colorDepth) {
+function tubeGeometry(sec, Y, colorDepth, radius) {
   const pts = [];
   const rel = [];
   const dist = [];
@@ -27,7 +29,7 @@ function tubeGeometry(sec, Y, colorDepth) {
   const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
   const segs = Math.min(1500, Math.max(8, Math.round(sec.length_m / 12)));
   const radial = 8;
-  const geo = new THREE.TubeGeometry(curve, segs, TUBE_RADIUS, radial, false);
+  const geo = new THREE.TubeGeometry(curve, segs, radius, radial, false);
   if (colorDepth) {
     // глубина вдоль трубки: интерполяция по пройденному расстоянию
     const cols = [];
@@ -45,19 +47,19 @@ function tubeGeometry(sec, Y, colorDepth) {
   return geo;
 }
 
-export function Tubes({ sections, visible, Y, colorMode, focusLine, onHover, onPick }) {
-  const geoms = useMemo(() => sections.map((s) => tubeGeometry(s, Y, colorMode === 'depth')), [sections, Y, colorMode]);
+export function Tubes({ sections, visible, Y, colorMode, focusLine, onHover, onPick, neu, glow }) {
+  const geoms = useMemo(() => sections.map((s) => tubeGeometry(s, Y, colorMode === 'depth', neu ? TUBE_RADIUS * 1.7 : TUBE_RADIUS)), [sections, Y, colorMode, neu]);
   useDispose(geoms);
   const mats = useMemo(() => {
     const m = {};
     const make = (key, opts) => { m[key] = new THREE.MeshStandardMaterial({ roughness: 0.55, metalness: 0.05, ...opts }); };
     sections.forEach((s) => {
       const c = new THREE.Color(s.color);
-      make(`${s.line}`, colorMode === 'depth' ? { vertexColors: true } : { color: c, emissive: c, emissiveIntensity: 0.12 });
+      make(`${s.line}`, colorMode === 'depth' ? { vertexColors: true } : { color: c, emissive: c, emissiveIntensity: glow ? 0.5 : 0.12 });
       make(`${s.line}-f`, { ...(colorMode === 'depth' ? { vertexColors: true } : { color: c }), transparent: true, opacity: 0.12, depthWrite: false });
     });
     return m;
-  }, [sections, colorMode]);
+  }, [sections, colorMode, glow]);
   useDispose(Object.values(mats));
 
   return (
@@ -78,7 +80,7 @@ export function Tubes({ sections, visible, Y, colorMode, focusLine, onHover, onP
 }
 
 // ---------- станции ----------
-export function Stations({ stations, Y, colorMode, focusLine, selectedId, hoverId, onHover, onPick }) {
+export function Stations({ stations, sections, Y, colorMode, focusLine, selectedId, hoverId, onHover, onPick, neu }) {
   const mats = useMemo(() => {
     const cache = new Map();
     return (s, faded) => {
@@ -112,7 +114,7 @@ export function Stations({ stations, Y, colorMode, focusLine, selectedId, hoverI
         return (
           <group key={s.id} position={[s.x, Y(s.z, s.ground), s.zz]}>
             <mesh
-              geometry={sphere}
+              geometry={neu ? sphereNeu : sphere}
               material={mats(s, faded)}
               userData={{ id: s.id }}
               onPointerMove={(e) => { e.stopPropagation(); onHover({ kind: 'station', id: s.id, x: e.clientX, y: e.clientY }); }}

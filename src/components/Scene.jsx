@@ -6,6 +6,7 @@ import { Tubes, Stations, Shafts, Transfers, SurfaceTraces } from './Metro';
 import Guides from './Guides';
 import Surface from './Surface';
 import Labels from './Labels';
+import Soil from './Soil';
 import { isUnderground } from '../lib/model';
 
 const TAN = Math.tan(THREE.MathUtils.degToRad(42 / 2));
@@ -115,6 +116,7 @@ function CameraRig({ api, Y, SY, exag, selected }) {
 const Scene = forwardRef(function Scene(props, ref) {
   const { data, view, Y, SY, opts, focusLine, selected, hoverId, labelItems, onHover, onPick, onUserCamera, extent, bg } = props;
   const overlay = useRef();
+  const neu = opts.style === 'neu'; const dark = opts.theme === 'dunkel';
   const rig = useRef(null);
 
   const views = useMemo(() => {
@@ -122,11 +124,11 @@ const Scene = forwardRef(function Scene(props, ref) {
     const cx = (x0 + x1) / 2; const cz = (z0 + z1) / 2; const k = Math.max(x1 - x0, z1 - z0) / 470;
     const ty = -8 * opts.exag;
     return {
-      iso: [[cx - 120 * k, 120 * k, cz + 200 * k], [cx, ty, cz + 10 * k]],
+      iso: opts.style === 'neu' ? [[cx - 60 * k, ty * 0.9, cz + 150 * k], [cx + 10 * k, ty * 1.5, cz - 20 * k]] : [[cx - 120 * k, 120 * k, cz + 200 * k], [cx, ty, cz + 10 * k]],
       top: [[cx, 560 * k, cz + 0.1], [cx, 0, cz]],
       below: [[cx - 160 * k, -300 * k, cz + 230 * k], [cx, ty, cz]],
     };
-  }, [extent, opts.exag]);
+  }, [extent, opts.exag, opts.style]);
 
   useImperativeHandle(ref, () => ({
     // Seite: Rahmung der fokussierten Linie bzw. aller sichtbaren Bahnhöfe
@@ -149,16 +151,19 @@ const Scene = forwardRef(function Scene(props, ref) {
         gl={{ antialias: true, logarithmicDepthBuffer: true }}
         onPointerMissed={(e) => { if (e.type === 'click') onPick(null); }}
       >
-        <color attach="background" args={[bg]} />
-        <hemisphereLight args={['#ffffff', '#445060', 1.6]} />
+        <color attach="background" args={[dark ? '#0D1117' : '#DCE3EA']} />
+        {neu && <fog attach="fog" args={[dark ? '#0D1117' : '#DCE3EA', 70000, 220000]} />}
+        {neu && <Soil extent={extent} bottom={-25 * opts.exag} exag={opts.exag} mode={opts.mode}
+          top={dark ? '#2A2622' : '#C9D3DC'} deep={dark ? '#0F0D0B' : '#3A4654'} line={dark ? '#8A7A60' : '#5A6878'} />}
+        <hemisphereLight args={['#ffffff', '#445060', dark ? 0.9 : 1.6]} />
         <directionalLight position={[-20000, 40000, 15000]} intensity={1.4} />
         <directionalLight position={[15000, -30000, -10000]} intensity={0.5} />
         <Surface extent={extent} kind={opts.surface} opacity={opts.surfOp} depthBottom={(opts.mode === 'abs' ? 15 - 35 : -25) * opts.exag} />
         <Guides extent={extent} mode={opts.mode} exag={opts.exag} showGrid={opts.grid} showLevels={opts.levels} />
         {opts.mode === 'abs' && opts.grid && <SurfaceTraces sections={data.sections} visible={view.sectionVisible} SY={SY} />}
         {opts.shafts && <Shafts stations={view.stations} Y={Y} SY={SY} />}
-        <Tubes sections={data.sections} visible={view.sectionVisible} Y={Y} colorMode={opts.color} focusLine={focusLine} onHover={onHover} onPick={onPick} />
-        <Stations stations={view.stations} Y={Y} colorMode={opts.color} focusLine={focusLine} selectedId={selected?.id} hoverId={hoverId} onHover={onHover} onPick={onPick} />
+        <Tubes neu={neu} glow={dark} sections={data.sections} visible={view.sectionVisible} Y={Y} colorMode={opts.color} focusLine={focusLine} onHover={onHover} onPick={onPick} />
+        <Stations neu={neu} sections={data.sections} stations={view.stations} Y={Y} colorMode={opts.color} focusLine={focusLine} selectedId={selected?.id} hoverId={hoverId} onHover={onHover} onPick={onPick} />
         {opts.transfers && <Transfers pairs={view.transfers} byId={view.byId} Y={Y} />}
         <Labels items={labelItems} overlay={overlay} />
         <CameraRig api={rig} Y={Y} SY={SY} exag={opts.exag} selected={selected} />

@@ -39,11 +39,11 @@ export function StationCard({ s, iso, ctx, transfers, focusReq, onClose, onBack,
         {s.district && (<><dt>Ortsteil</dt><dd>{s.district}</dd></>)}
       </dl>
       <details className="src">
-        <summary>Herkunft des Werts</summary>
+        <summary>Quelle</summary>
         <dl className="facts">
           {provenanceRows(s).map(([k, v]) => (<Fragment key={k}><dt>{k}</dt><dd>{v}</dd></Fragment>))}
         </dl>
-        <p className="hint small">{provenanceNote(s)} Die Zahl beschreibt die Höhenlage des Bahnhofs im Modell gegenüber dem lokalen Geländeniveau (DGM1, geglättet); ob Bahnsteig, Schiene oder Bauwerk gemeint ist, ist in den Quellen nicht einheitlich.</p>
+        <p className="hint small">{provenanceNote(s)}</p>
       </details>
       {transfers.length > 0 && (
         <p className="meta">Umstieg: {transfers.map((o, i) => (

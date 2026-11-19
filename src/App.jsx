@@ -4,6 +4,7 @@ import Panel from './components/Panel';
 import TimeControl from './components/TimeControl';
 import { StationCard, LineCard } from './components/Card';
 import { END_YEAR, DEFAULT_EXAG, DEEP_LABEL, LINE_COLOR, LINES } from './lib/config';
+import ModelInfo from './components/ModelInfo';
 import { prepare, makeY, surfaceY, lineChain, lineProfile, isUnderground } from './lib/model';
 import { depthText, statusShort } from './lib/depth';
 import { isoForYear, stateAt, sectionOpenAt, interruptionAt, nameAt, formatDate, normDate, yearOf } from './lib/time';
@@ -13,7 +14,9 @@ const load = (name) => fetch(`/data/${name}`, { cache: 'no-cache' }).then((r) =>
   return r.json();
 });
 
-const DEFAULT_OPTS = { exag: DEFAULT_EXAG, surface: 'map', surfOp: 0.55, mode: 'rel', color: 'line', labels: 'deep', shafts: true, grid: true, levels: true, transfers: true };
+const saved = (k, fb) => { try { return localStorage.getItem(k) || fb; } catch { return fb; } };
+const START_THEME = saved('ubahn3d.theme', typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dunkel' : 'hell');
+const DEFAULT_OPTS = { theme: START_THEME, style: saved('ubahn3d.style', 'neu'), exag: DEFAULT_EXAG, surface: 'map', surfOp: 0.55, mode: 'rel', color: 'line', labels: 'deep', shafts: true, grid: true, levels: true, transfers: true };
 const cssVar = (n, fb) => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || fb;
 
 export default function App() {
@@ -33,6 +36,11 @@ export default function App() {
   const scene = useRef();
   const main = useRef();
   const setOpt = (k, v) => setOpts((o) => ({ ...o, [k]: v }));
+  const [info, setInfo] = useState(false);
+  useEffect(() => {
+    document.documentElement.dataset.theme = opts.theme;
+    try { localStorage.setItem('ubahn3d.theme', opts.theme); localStorage.setItem('ubahn3d.style', opts.style); } catch { /* ohne Speicher */ }
+  }, [opts.theme, opts.style]);
 
   useEffect(() => {
     Promise.all([load('network3d.json'), load('stations.geojson')])
@@ -211,7 +219,10 @@ export default function App() {
     <div className="app">
       <header>
         <h1>Berliner U-Bahn in der Tiefe <span className="yr">{year}</span></h1>
-        <p>Vereinfachtes Höhenmodell von Tunneln, Hochbahnen und Bahnhöfen – Höhenunterschiede ×{opts.exag} vergrößert, Meterangaben unverändert</p>
+        <button type="button" className="info-btn" aria-label="Über das Modell" aria-expanded={info} onClick={() => setInfo((v) => !v)}>i</button>
+        <button type="button" className="theme-btn" onClick={() => setOpt('theme', opts.theme === 'dunkel' ? 'hell' : 'dunkel')}
+          aria-label={opts.theme === 'dunkel' ? 'Helles Design' : 'Dunkles Design'} title={opts.theme === 'dunkel' ? 'Hell' : 'Dunkel'}>{opts.theme === 'dunkel' ? '☀' : '☾'}</button>
+        <p className="sr">Vereinfachtes Höhenmodell von Tunneln, Hochbahnen und Bahnhöfen – Höhenunterschiede ×{opts.exag} vergrößert, Meterangaben unverändert</p>
       </header>
       <main ref={main}>
         {error && <div className="error">Daten konnten nicht geladen werden: {error}</div>}
@@ -222,6 +233,7 @@ export default function App() {
             onPick={(p) => { if (!p) stepBack(); else if (p.kind === 'station') pickStation(p.id, false); else pickLine(p.line); }} />
         )}
         {tip}
+        {info && <ModelInfo exag={opts.exag} onClose={() => setInfo(false)} />}
         {data && (
           <Panel stats={stats} hiddenLines={hiddenLines} toggleLine={toggleLine} showAll={showAllLines} focusLine={focusLine} onLine={pickLine}
             stations={view?.stations || []} open={panelOpen} setOpen={setPanelOpen}
