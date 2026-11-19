@@ -10,6 +10,8 @@ const signets = (lines) => (lines || []).map((l) => `<i class="lb${light(LINE_CO
 // Подписи — DOM поверх холста. Ничего не скрываем: подписи могут накладываться,
 // ближняя к камере лежит сверху (z-index), как в 3d-metro. Набор меняется только
 // от настроек (режим подписей, год, выбор), а не от движения камеры.
+const FLOOR_PX = 18; // Abstand der Etagen in Bildschirmpixeln (nicht Meter)
+
 export default function Labels({ items, overlay }) {
   const { camera, size } = useThree();
   const els = useRef([]);
@@ -23,9 +25,11 @@ export default function Labels({ items, overlay }) {
       let e = old.get(it.key);
       if (e) old.delete(it.key);
       else { e = { key: it.key, el: document.createElement('div'), shown: false }; e.el.style.display = 'none'; root.appendChild(e.el); }
-      e.el.className = `lbl${it.ghost ? ' ghost' : ''}${it.strong ? ' strong' : ''}${it.focus ? ' focus' : ''}${it.bg ? ' bg' : ''}`;
+      e.el.className = `lbl${it.ghost ? ' ghost' : ''}${it.strong ? ' strong' : ''}${it.focus ? ' focus' : ''}${it.bg ? ' bg' : ''}${it.tier ? ' lead' : ''}`;
+      e.lift = it.tier ? it.tier * FLOOR_PX : 0;
+      e.el.style.setProperty('--lead', `${e.lift}px`);
       e.el.style.setProperty('--c', it.color);
-      e.el.innerHTML = `${signets(it.lines)}${it.text}${it.depth ? `<b>${it.depth}</b>` : ''}`;
+      e.el.innerHTML = `<span class="lbs">${signets(it.lines)}</span>${it.text}${it.depth ? `<b>${it.depth}</b>` : ''}`;
       e.it = it;
       return e;
     });
@@ -45,7 +49,7 @@ export default function Labels({ items, overlay }) {
       const on = v.z < 1 && v.z > -1 && Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1;
       if (on !== e.shown) { e.el.style.display = on ? 'block' : 'none'; e.shown = on; }
       if (!on) continue;
-      e.el.style.transform = `translate(${(((v.x + 1) / 2) * W).toFixed(1)}px, ${(((1 - v.y) / 2) * H).toFixed(1)}px) translate(-50%, -135%)`;
+      e.el.style.transform = `translate(${(((v.x + 1) / 2) * W).toFixed(1)}px, ${(((1 - v.y) / 2) * H).toFixed(1)}px) translate(-50%, -135%) translateY(${-e.lift}px)`;
       // Stapelung nach Priorität: gewählt/überfahren → untersuchte Linie → Hintergrund; innerhalb: näher liegt oben
       e.el.style.zIndex = String(it.strong ? 300000 : (it.focus ? 200000 : 100000) - Math.min(99999, Math.round(dist / 5)));
     }

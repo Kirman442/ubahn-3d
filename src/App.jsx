@@ -165,6 +165,10 @@ function CityApp({ city, choose, opts, setOpts }) {
         lines: CITY.lines.map((l) => l.id).filter((l) => lines.includes(l)), color: (onFocus ? list.find((s) => s.line === focusLine) : top).color,
         ghost: list.every((s) => s.state === 'interrupted'), strong: false, focus: onFocus, bg: !!focusLine && !onFocus });
     });
+    // «Etagen»: in dichten Modi (alle, ab 10 m, Linienkarte) steht jedes Schild je nach Linie höher, mit Führungsstrich
+    const floors = opts.labels === 'all' || opts.labels === 'deep' || !!focusLine;
+    const order = CITY.lines.map((l) => l.id);
+    if (floors) out.forEach((it) => { it.tier = order.indexOf(it.lines[0]) + 1; });
     if (selStation) out.push(one(selStation, true));
     if (hoverStation && hoverStation.id !== selStation?.id) out.push(one(hoverStation, true));
     return out;
