@@ -1,0 +1,217 @@
+﻿id;line;name;ground_dgm1_m
+U1-Go;U1;Gleisdreieck;35.82
+U1-Gr;U1;Görlitzer Bahnhof;36.16
+U1-Ho;U1;Hallesches Tor;33.9
+U1-Kbo;U1;Kottbusser Tor;35.21
+U1-Kfo;U1;Kurfürstendamm;34.63
+U1-Kus;U1;Kurfürstenstraße;34.88
+U1-Mo;U1;Möckernbrücke;33.74
+U1-Nm;U1;Nollendorfplatz;34.37
+U1-Nu;U1;Nollendorfplatz;34.37
+U1-St;U1;Osthafen;38.71
+U1-Pr;U1;Prinzenstraße;34.97
+U1-S;U1;Schlesisches Tor;34.93
+U1-U;U1;Uhlandstraße;34.18
+U1-WA;U1;Warschauer Straße;41.15
+U1-Wt;U1;Wittenbergplatz;34.47
+U2-A;U2;Alexanderplatz;36.99
+U2-MH;U2;Anton-Wilhelm-Amo-Straße;34.77
+U2-Bmo;U2;Bismarckstraße;36.73
+U2-Bs;U2;Bülowstraße;35.12
+U2-Obi;U2;Deutsche Oper;36.78
+U2-EB;U2;Eberswalder Straße;49.07
+U2-RP;U2;Ernst-Reuter-Platz;33.83
+U2-Gu;U2;Gleisdreieck;35.81
+U2-Hv;U2;Hausvogteiplatz;34.33
+U2-Kd;U2;Kaiserdamm;47.52
+U2-Ko;U2;Klosterstraße;35.1
+U2-MB;U2;Mendelssohn-Bartholdy-Park;34.39
+U2-Mk;U2;Märkisches Museum;35.26
+U2-Nd;U2;Neu-Westend;59.29
+U2-No;U2;Nollendorfplatz;34.65
+U2-Sd;U2;Olympia-Stadion;44.72
+U2-PA;U2;Pankow;48.24
+U2-Pd;U2;Potsdamer Platz;35.05
+U2-Lu;U2;Rosa-Luxemburg-Platz;37.4
+U2-Rl;U2;Ruhleben;38.05
+U2-Sh;U2;Schönhauser Allee;50.94
+U2-Sz;U2;Senefelderplatz;48.1
+U2-So;U2;Sophie-Charlotte-Platz;34.39
+U2-Sp;U2;Spittelmarkt;34.29
+U2-Mi;U2;Stadtmitte;34.02
+U2-Th;U2;Theodor-Heuss-Platz;60.07
+U2-VIN;U2;Vinetastraße;49.34
+U2-Wt;U2;Wittenbergplatz;35.57
+U2-Zo;U2;Zoologischer Garten;34.43
+U3-Au;U3;Augsburger Straße;34.58
+U3-Bt;U3;Breitenbachplatz;46.71
+U3-Dd;U3;Dahlem-Dorf;50.47
+U3-Fpo;U3;Fehrbelliner Platz;38.77
+U3-T;U3;Freie Universität (Thielplatz);49.06
+U3-Go;U3;Gleisdreieck;35.82
+U3-Gr;U3;Görlitzer Bahnhof;36.16
+U3-Ho;U3;Hallesches Tor;33.9
+U3-Hb;U3;Heidelberger Platz;47.91
+U3-Hz;U3;Hohenzollernplatz;34.87
+U3-Kbo;U3;Kottbusser Tor;35.21
+U3-K;U3;Krumme Lanke;41.23
+U3-Kus;U3;Kurfürstenstraße;34.88
+U3-Mo;U3;Möckernbrücke;33.74
+U3-Nm;U3;Nollendorfplatz;34.37
+U3-Nu;U3;Nollendorfplatz;34.37
+U3-Nb;U3;Nürnberger Platz;34.74
+U3-Ot;U3;Onkel Toms Hütte;44.55
+U3-Os;U3;Oskar-Helene-Heim;44.19
+U3-Po;U3;Podbielskiallee;49.73
+U3-Pr;U3;Prinzenstraße;34.97
+U3-Rd;U3;Rüdesheimer Platz;41.9
+U3-S;U3;Schlesisches Tor;34.93
+U3-Sno;U3;Spichernstraße;34.49
+U3-WA;U3;Warschauer Straße;39.02
+U3-Wt;U3;Wittenbergplatz;35.69
+U4-Bpo;U4;Bayerischer Platz;40.31
+U4-Ip;U4;Innsbrucker Platz (Hauptstraße);39.2
+U4-Nm;U4;Nollendorfplatz;34.44
+U4-RS;U4;Rathaus Schöneberg;34.99
+U4-V;U4;Viktoria-Luise-Platz;35.27
+U5-Al;U5;Alexanderplatz;36.86
+U5-Bü;U5;Biesdorf-Süd;38.06
+U5-BRT;U5;Brandenburger Tor;34.15
+U5-BUN;U5;Bundestag;34.87
+U5-C;U5;Cottbusser Platz;52.34
+U5-E;U5;Elsterwerdaer Platz;45.54
+U5-Ff;U5;Frankfurter Allee;36.67
+U5-FT;U5;Frankfurter Tor;37.01
+U5-Fi;U5;Friedrichsfelde;38.4
+U5-HBF;U5;Hauptbahnhof;39.31
+U5-HD;U5;Hellersdorf;53.45
+U5-Hö;U5;Hönow;58.28
+U5-KL;U5;Kaulsdorf-Nord;47.2
+U5-GK;U5;Kienberg (Gärten der Welt);49.68
+U5-Li;U5;Lichtenberg;39.17
+U5-LL;U5;Louis-Lewin-Straße;55.83
+U5-Md;U5;Magdalenenstraße;37.58
+U5-MUI;U5;Museumsinsel;30.75
+U5-RHO;U5;Rotes Rathaus;36.15
+U5-Sa;U5;Samariterstraße;36.86
+U5-Si;U5;Schillingstraße;36.2
+U5-Sr;U5;Strausberger Platz;36.07
+U5-Tk;U5;Tierpark;37.59
+U5-UDU;U5;Unter den Linden;34.84
+U5-WR;U5;Weberwiese;35.9
+U5-Wh;U5;Wuhletal;50.54
+U6-Afr;U6;Afrikanische Straße;37.86
+U6-Mf;U6;Alt-Mariendorf;46.44
+U6-Tg;U6;Alt-Tegel;34.4
+U6-At;U6;Alt-Tempelhof;44.05
+U6-Bk;U6;Borsigwerke;35.48
+U6-Fr;U6;Französische Straße;33.97
+U6-F;U6;Friedrichstraße;33.28
+U6-Hu;U6;Hallesches Tor;36
+U6-Hh;U6;Holzhauser Straße;41.54
+U6-Ka;U6;Kaiserin-Augusta-Straße;45.04
+U6-Ks;U6;Kochstraße (Checkpoint Charlie);35.13
+U6-Sch;U6;Kurt-Schumacher-Platz;38.09
+U6-Lpo;U6;Leopoldplatz;37.1
+U6-Me;U6;Mehringdamm;36.12
+U6-NA;U6;Naturkundemuseum;35.52
+U6-Ob;U6;Oranienburger Tor;34.64
+U6-OTI;U6;Otisstraße;41.1
+U6-Ps;U6;Paradestraße;44.91
+U6-PL;U6;Platz der Luftbrücke;49.59
+U6-Rb;U6;Rehberge;39.07
+U6-Ri;U6;Reinickendorfer Straße;35.97
+U6-Scha;U6;Scharnweberstraße;41
+U6-SK;U6;Schwartzkopffstraße;35.87
+U6-Se;U6;Seestraße;37.15
+U6-Mic;U6;Stadtmitte;34.55
+U6-Ts;U6;Tempelhof (Südring);44.97
+U6-Ull;U6;Ullsteinstraße;36.69
+U6-UDO;U6;Unter den Linden;34.51
+U6-We;U6;Wedding;36.7
+U6-Wl;U6;Westphalweg;47.22
+U7-Ado;U7;Adenauerplatz;34.53
+U7-AS;U7;Altstadt Spandau;34.69
+U7-Bpu;U7;Bayerischer Platz;40.08
+U7-Beo;U7;Berliner Straße;39.64
+U7-Bmu;U7;Bismarckstraße;36.61
+U7-Bl;U7;Blaschkoallee;42.86
+U7-Bli;U7;Blissestraße;37.44
+U7-Br;U7;Britz-Süd;43.6
+U7-Ei;U7;Eisenacher Straße;35.94
+U7-Fpu;U7;Fehrbelliner Platz;38.93
+U7-Gs;U7;Gneisenaustraße;36.32
+U7-Gz;U7;Grenzallee;37.03
+U7-Hl;U7;Halemweg;33.46
+U7-Hs;U7;Haselhorst;33.58
+U7-Hpu;U7;Hermannplatz;36.53
+U7-JK;U7;Jakob-Kaiser-Platz;37.76
+U7-Jt;U7;Johannisthaler Chaussee (Gropiusstadt);40.64
+U7-Jho;U7;Jungfernheide;36.67
+U7-Jhu;U7;Jungfernheide;36.67
+U7-KM;U7;Karl-Marx-Straße;36.86
+U7-Kt;U7;Kleistpark;35.72
+U7-Kn;U7;Konstanzer Straße;36.7
+U7-La;U7;Lipschitzallee;43.59
+U7-Me;U7;Mehringdamm;36
+U7-Mp;U7;Mierendorffplatz;33.13
+U7-Mu;U7;Möckernbrücke;34.31
+U7-Nk;U7;Neukölln (Südring);35.41
+U7-Pi;U7;Parchimer Allee;40.84
+U7-P;U7;Paulsternstraße;33.9
+U7-Rk;U7;Rathaus Neukölln;37.01
+U7-RSp;U7;Rathaus Spandau;33.79
+U7-Rw;U7;Richard-Wagner-Platz;36.47
+U7-RwK;U7;Richard-Wagner-Platz (Kleinprofil);36.5
+U7-Rm;U7;Rohrdamm;33.65
+U7-R;U7;Rudow;39.16
+U7-Sie;U7;Siemensdamm;33.71
+U7-Sü;U7;Südstern;36.93
+U7-Wd;U7;Wilmersdorfer Straße;34.78
+U7-Wk;U7;Wutzkyallee;44.28
+U7-Y;U7;Yorckstraße;34.34
+U7-Zi;U7;Zitadelle;32.13
+U7-Zd;U7;Zwickauer Damm;38.77
+U8-Ap;U8;Alexanderplatz;36.74
+U8-B;U8;Bernauer Straße;46.44
+U8-Bo;U8;Boddinstraße;52.48
+U8-FN;U8;Franz-Neumann-Platz (Am Schäfersee);40.44
+U8-Gb;U8;Gesundbrunnen;42.16
+U8-He;U8;Heinrich-Heine-Straße;34.97
+U8-Hpo;U8;Hermannplatz;36.53
+U8-HMS;U8;Hermannstraße;48.4
+U8-Jb;U8;Jannowitzbrücke;35.65
+U8-KB;U8;Karl-Bonhoeffer-Nervenklinik;41.06
+U8-Kbu;U8;Kottbusser Tor;35.24
+U8-L;U8;Leinestraße;50.03
+U8-LD;U8;Lindauer Allee;39.77
+U8-Mr;U8;Moritzplatz;35.11
+U8-Olu;U8;Osloer Straße;39.87
+U8-Pk;U8;Pankstraße;40.07
+U8-PB;U8;Paracelsus-Bad;41.61
+U8-RR;U8;Rathaus Reinickendorf;39.24
+U8-RE;U8;Residenzstraße;42.09
+U8-Ro;U8;Rosenthaler Platz;36.64
+U8-ST;U8;Schönleinstraße;34.82
+U8-Vo;U8;Voltastraße;45.73
+U8-W;U8;Weinmeisterstraße;35.51
+U8-WIU;U8;Wittenau (Wilhelmsruher Damm);45.62
+U9-Am;U9;Amrumer Straße;35.19
+U9-Beu;U9;Berliner Straße;39.55
+U9-Bi;U9;Birkenstraße;34.26
+U9-Bd;U9;Bundesplatz;40.31
+U9-Fw;U9;Friedrich-Wilhelm-Platz;39.48
+U9-Gt;U9;Güntzelstraße;34.91
+U9-Ha;U9;Hansaplatz;34.79
+U9-Kfu;U9;Kurfürstendamm;34.58
+U9-Lpu;U9;Leopoldplatz;37.11
+U9-Np;U9;Nauener Platz;37.84
+U9-Olo;U9;Osloer Straße;39.96
+U9-Rzu;U9;Rathaus Steglitz;43.75
+U9-Slo;U9;Schloßstraße;46.05
+U9-Slu;U9;Schloßstraße;46.05
+U9-Snu;U9;Spichernstraße;34.69
+U9-Tm;U9;Turmstraße;33.3
+U9-Wsg;U9;Walther-Schreiber-Platz;42.28
+U9-WF;U9;Westhafen;33.04
+U9-Zu;U9;Zoologischer Garten;33.38

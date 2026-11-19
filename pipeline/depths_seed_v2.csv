@@ -1,0 +1,32 @@
+﻿line;name;depth_m;reference;precision;source
+U1;Osthafen;7.5;Straßenniveau;Angabe;dewiki U-Bahnhof Osthafen (Treppenaufgang, Hochbahn)
+U1;Schlesisches Tor;6;Straßenniveau;Angabe;dewiki U-Bahnhof Schlesisches Tor
+U2;Rosa-Luxemburg-Platz;-4;Straßendecke;Angabe;dewiki U-Bahnhof Rosa-Luxemburg-Platz
+U2;Senefelderplatz;-5;Straßendecke;Angabe;dewiki U-Bahnhof Senefelderplatz
+U2;Spittelmarkt;-3.7;Straßendecke;Angabe;dewiki U-Bahnhof Spittelmarkt
+U3;Krumme Lanke;-3.6;Straßenniveau;Angabe;dewiki U-Bahnhof Krumme Lanke (Einschnitt)
+U3;Schlesisches Tor;6;Straßenniveau;Angabe;dewiki U-Bahnhof Schlesisches Tor
+U4;Viktoria-Luise-Platz;-4.2;Straßendecke;Angabe;dewiki U-Bahnhof Viktoria-Luise-Platz
+U5;Alexanderplatz;-11.25;Oberfläche;Angabe;dewiki U-Bahnhof Alexanderplatz
+U5;Brandenburger Tor;-17;Straßenebene;ca.;dewiki U-Bahn-Linie U5
+U5;Museumsinsel;-16;Straßenoberkante;rund;dewiki U-Bahnhof Museumsinsel
+U5;Rotes Rathaus;-7;Straßenoberkante;Angabe;dewiki U-Bahnhof Rotes Rathaus (untere Ebene −12 m)
+U5;Unter den Linden;-14;Straßenoberkante;Angabe;dewiki U-Bahnhof Unter den Linden
+U6;Borsigwerke;-6.8;Straßenoberfläche;Angabe;dewiki U-Bahnhof Borsigwerke
+U6;Friedrichstraße;-6.65;Straßenniveau;Angabe;dewiki U-Bahnhof Friedrichstraße
+U6;Holzhauser Straße;7.1;Straßenniveau;Angabe;dewiki U-Bahnhof Holzhauser Straße (Hochbahn)
+U6;Kurt-Schumacher-Platz;-7.66;Gelände;Angabe;dewiki U-Bahnhof Kurt-Schumacher-Platz
+U6;Naturkundemuseum;-4.6;Straße;Angabe;dewiki U-Bahnhof Naturkundemuseum
+U6;Oranienburger Tor;-4.9;Straße;Angabe;dewiki U-Bahnhof Oranienburger Tor
+U6;Otisstraße;7.35;Straßenniveau;Angabe;dewiki U-Bahnhof Otisstraße (Hochbahn)
+U6;Schwartzkopffstraße;-4.3;Straße;Angabe;dewiki U-Bahnhof Schwartzkopffstraße
+U6;Seestraße;-4.4;Gelände;Angabe;dewiki U-Bahnhof Seestraße (ursprünglicher Bau)
+U6;Unter den Linden;-5;Straßenoberkante;rund;dewiki U-Bahnhof Unter den Linden
+U7;Altstadt Spandau;-14;Gelände;Angabe;dewiki U-Bahnhof Altstadt Spandau
+U7;Grenzallee;-6.3;Straßenoberfläche;Angabe;dewiki U-Bahnhof Grenzallee
+U7;Hermannplatz;-9;Gelände;Angabe;dewiki U-Bahnhof Hermannplatz
+U8;Bernauer Straße;-4.5;Straße;4–5 m;dewiki U-Bahnhof Bernauer Straße
+U8;Gesundbrunnen;-14.75;Straßenoberfläche;Angabe;dewiki U-Bahnhof Gesundbrunnen
+U8;Osloer Straße;;zweieinhalbfache Tiefenlage;nur Klasse;dewiki U-Bahnhof Osloer Straße
+U8;Rosenthaler Platz;-7;Straßenniveau;rund;dewiki U-Bahnhof Rosenthaler Platz
+U8;Schönleinstraße;-6.7;Straßenniveau;Angabe;dewiki U-Bahnhof Schönleinstraße

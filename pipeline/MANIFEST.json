@@ -1,0 +1,122 @@
+{
+ "createdAt": "2026-11-19T11:38:10.950Z",
+ "purpose": "Versionierter Schnappschuss des Generators von public/data/network3d.json (Paket 2, zusammengeführt).",
+ "run": "cd ubahn-data && py scripts/build_3d.py   (Python 3.11.6, nur Standardbibliothek)",
+ "generator": {
+  "path": "ubahn-data/scripts/build_3d.py",
+  "bytes": 15186,
+  "mtime": "2026-11-19T10:59:20.812Z",
+  "sha256": "b8ab6dffe58065fedf0fc033ab805f236ef4409e66daeb5540874a4f190077b1"
+ },
+ "copiedHere": [
+  {
+   "file": "pipeline/build_3d.py",
+   "path": "ubahn-data/scripts/build_3d.py",
+   "bytes": 15186,
+   "mtime": "2026-11-19T10:59:20.812Z",
+   "sha256": "b8ab6dffe58065fedf0fc033ab805f236ef4409e66daeb5540874a4f190077b1"
+  },
+  {
+   "file": "pipeline/depths_seed_v2.csv",
+   "path": "ubahn-data/depth/depths_seed_v2.csv",
+   "bytes": 2572,
+   "mtime": "2026-11-18T13:38:51.943Z",
+   "sha256": "5b89577596a708350612f92ae011f80c3529aef1c4a33e339030ef31e7d9c0ec"
+  },
+  {
+   "file": "pipeline/surface_dgm1.csv",
+   "path": "ubahn-data/depth/surface_dgm1.csv",
+   "bytes": 7051,
+   "mtime": "2026-11-18T13:51:54.370Z",
+   "sha256": "c3dd5f63b023ee98d8cccebd70009b7413d96b4c5ea9b38688896faf2ac620e5"
+  }
+ ],
+ "inputs": [
+  {
+   "path": "ubahn-data/stations/stations.json",
+   "bytes": 203145,
+   "mtime": "2026-11-18T11:58:23.856Z",
+   "sha256": "e925db40201ff60f8513498dac64b41eafecbeb230ed02520c27a238373998d8"
+  },
+  {
+   "path": "ubahn-data/app/berlinmetro/public/data/stations.geojson",
+   "bytes": 92157,
+   "mtime": "2026-11-18T12:56:24.115Z",
+   "sha256": "66fa1c8497910b33ab749978374ef761e53ef1333e6d444de1637187eac0e900"
+  },
+  {
+   "path": "ubahn-data/app/berlinmetro/public/data/sections.geojson",
+   "bytes": 129666,
+   "mtime": "2026-11-18T12:56:24.923Z",
+   "sha256": "50f283e4e65816348f1eed302348066b438616afd5a3d3cbe6a87bcc37e94843"
+  },
+  {
+   "path": "ubahn-data/osm/osm_stations.geojson",
+   "bytes": 87862,
+   "mtime": "2026-11-18T11:53:57.885Z",
+   "sha256": "ec9e8a48e3e96f13e191b9fecedf2cc38e347e8f8c86bd56734b872711ee0efd"
+  },
+  {
+   "path": "ubahn-data/osm/osm_stops.geojson",
+   "bytes": 415823,
+   "mtime": "2026-11-18T11:53:57.979Z",
+   "sha256": "81d285109db5d16a63e054f77b0766849d1a136dad88ff65454acbbcbc90e86b"
+  },
+  {
+   "path": "ubahn-data/osm/osm_track_segments.geojson",
+   "bytes": 840441,
+   "mtime": "2026-11-18T11:53:58.253Z",
+   "sha256": "bbaedbd72d21189024885094bac24c8f38275d1f6ec67a4d1f0db4878904e5a9"
+  },
+  {
+   "path": "ubahn-data/depth/depths_seed_v2.csv",
+   "bytes": 2572,
+   "mtime": "2026-11-18T13:38:51.943Z",
+   "sha256": "5b89577596a708350612f92ae011f80c3529aef1c4a33e339030ef31e7d9c0ec"
+  },
+  {
+   "path": "ubahn-data/depth/surface_dgm1.csv",
+   "bytes": 7051,
+   "mtime": "2026-11-18T13:51:54.370Z",
+   "sha256": "c3dd5f63b023ee98d8cccebd70009b7413d96b4c5ea9b38688896faf2ac620e5"
+  },
+  {
+   "path": "ubahn-data/depth/dgm1_cache.json",
+   "bytes": 91687,
+   "mtime": "2026-11-18T13:51:54.354Z",
+   "sha256": "93bebec7561652bb4efd224ef6a0d4837a2d35639243feeb1e4c3582eaa8d67f"
+  },
+  {
+   "path": "ubahn-data/scripts/fetch_dgm1.mjs",
+   "bytes": 3639,
+   "mtime": "2026-11-18T15:56:48.891Z",
+   "sha256": "d94e9acb387263c73f5ddf30c0138c0ac28aa77336d84af3218dc0d60a85fa9a"
+  }
+ ],
+ "missingInputs": [],
+ "outputs": [
+  {
+   "path": "ubahn-data/depth/network3d.json",
+   "bytes": 217611,
+   "mtime": "2026-11-19T10:59:47.531Z",
+   "sha256": "7a85161f8ff6dbb9ae20899e20cdf5b979933dee0faa690bdbdc52b28608d61a"
+  },
+  {
+   "path": "ubahn-data/depth/lines3d_v2.geojson",
+   "bytes": 200279,
+   "mtime": "2026-11-19T10:59:47.461Z",
+   "sha256": "2d858839e3a1543aac96f552bbd4a69f39f6f3892061d7f679d6fe6ef241aceb"
+  },
+  {
+   "path": "ubahn-data/depth/stations3d.csv",
+   "bytes": 13979,
+   "mtime": "2026-11-19T10:59:47.531Z",
+   "sha256": "5a34a54ea8608fc68765422101a9e63f61aaf9eb0732f21914d3ab6f24c2e64c"
+  }
+ ],
+ "appData": {
+  "path": "public/data/network3d.json",
+  "sha256": "7a85161f8ff6dbb9ae20899e20cdf5b979933dee0faa690bdbdc52b28608d61a",
+  "identicalToGeneratorOutput": true
+ }
+}

@@ -11,9 +11,10 @@ export function depthColor(rel) {
   return RAMP[i].clone().lerp(RAMP[i + 1], t - i);
 }
 export const RAMP_CSS = 'linear-gradient(90deg,#E8C27C,#C9793A,#8A3B55,#3A3170)';
-// −12 m statt −12,0 m; Nachkommastelle nur wenn nötig
-export const fmtM = (v, d = 1) => {
-  const a = Math.abs(v);
-  const t = Number.isInteger(Math.round(a * 10) / 10) ? Math.round(a).toString() : a.toFixed(d).replace('.', ',');
-  return `${v < 0 ? '−' : v > 0 ? '+' : ''}${t}`;
+// Tiefenwert mit Vorzeichen: höchstens 2 Nachkommastellen, ohne Endnullen (−17, −11,25, −14,75, +7,35, −3,7).
+// Genauigkeit/Herkunft (≈, Spanne, Modell) wird nicht hier, sondern in lib/depth.js ausgedrückt.
+export const fmtM = (v, d = 2) => {
+  const t = Number(Math.abs(v).toFixed(d)).toString().replace('.', ',');
+  const sg = t === '0' ? '' : v < 0 ? '−' : '+';
+  return `${sg}${t}`;
 };

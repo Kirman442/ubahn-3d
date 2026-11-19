@@ -1,34 +1,64 @@
 import { fmtM } from './colors';
 
-// Herkunft und Genauigkeit eines Höhenwerts (Paket 2, aus network3d.json: kind/prec/rng/ref/quelle/methode).
-//   quelle     – Zahl aus einer Quelle (Wikipedia). prec: punkt | ca | rund | spanne
-//   abgeleitet – aus Quellenzahlen berechnet (Gleisdreieck)
-//   modell     – Schätzung des Modells (OSM-Bahnsteigebene, Bauart/Lage)
-// Keine erfundene Fehlerspanne: ≈ heißt nur «nicht als genaue Zahl belegt».
+// Einziger Vertrag für Herkunft und Genauigkeit eines Höhenwerts (Paket 2).
+// Die Felder stammen aus den Daten (scripts/build_3d.py → network3d.json), nicht aus einem zweiten Wörterbuch in der App:
+//   kind   – quelle (Zahl aus einer Quelle) | abgeleitet (aus Quellenzahlen berechnet) | modell (Schätzung des Modells)
+//   prec   – nur bei quelle: punkt | ca | rund | spanne
+//   rng    – nur bei spanne: [a, b] in m mit Vorzeichen wie z, in Reihenfolge der Quelle
+//   angabe – nur bei spanne: Originalschreibweise der Quelle (z. B. «4–5 m»)
+//   ref    – Bezugsangabe laut Quelle (Straßenniveau, Straßendecke, Gelände …)
+//   quelle – Quellenangabe bzw. Herleitung;  methode – Schätzverfahren des Modells
+// Keine erfundene Fehlerspanne: ≈ heißt nur «nicht als genaue Einzelzahl belegt».
+// Karte (Beschriftung), Tooltip, Liste, Stations- und Linienkarte und Profil verwenden nur diese Funktionen.
+
 export const isApprox = (s) => !(s.kind === 'quelle' && (s.prec === 'punkt' || s.prec === 'spanne'));
 export const isSourced = (s) => s.kind === 'quelle';
 
-// kurzer Wert mit Vorzeichen wie auf der Karte: −17 m, ≈ −12 m, −4 bis −5 m, ≈ +12 m
-export function depthText(s) {
-  if (s.prec === 'spanne' && s.rng) return `${fmtM(s.rng[0])} bis ${fmtM(s.rng[1])} m`;
-  const v = Math.abs(s.z) < 0.5 ? '0' : fmtM(s.z);
-  return `${isApprox(s) ? '≈ ' : ''}${v} m`;
-}
+// Spanne aufsteigend (untere → obere Grenze), unabhängig von der Reihenfolge in der Quelle: [−4, −5] → −5…−4
+const sortedRange = (s) => [...s.rng].sort((a, b) => a - b);
 
-// Status in einem Wort/Satzteil
+// Zahl ohne Einheit, wie auf der Karte: −17 · ≈ −17 · −5…−4 · ≈ +12 · 0
+export function depthNumber(s) {
+  if (s.prec === 'spanne' && Array.isArray(s.rng) && s.rng.length === 2) {
+    const [lo, hi] = sortedRange(s);
+    return `${fmtM(lo)}…${fmtM(hi)}`;
+  }
+  const v = Math.abs(s.z) < 0.005 ? '0' : fmtM(s.z);
+  return `${isApprox(s) ? '≈ ' : ''}${v}`;
+}
+export const depthText = (s) => `${depthNumber(s)} m`;
+
+// Status kurz (Tag in der Karte, Tooltip, Profil-Titel)
 export function statusShort(s) {
-  if (s.kind === 'quelle') return s.prec === 'ca' ? 'Quellenangabe «ca.»' : s.prec === 'rund' ? 'Quellenangabe «rund»' : s.prec === 'spanne' ? 'Quellenangabe (Spanne)' : 'Quellenangabe';
+  if (s.kind === 'quelle') {
+    return s.prec === 'ca' ? 'Quellenangabe · ca.' : s.prec === 'rund' ? 'Quellenangabe · rund'
+      : s.prec === 'spanne' ? 'Quellenangabe · Spanne' : 'Quellenangabe';
+  }
   if (s.kind === 'abgeleitet') return 'abgeleitet';
   return 'Modellschätzung';
 }
 
-// ausführlicher Hinweis für die Karte
-export function statusLong(s) {
+const PREC = { punkt: 'Einzelwert ohne Zusatz', ca: '«ca.»', rund: '«rund»' };
+
+// «Herkunft des Werts»: Zeilen [Begriff, Wert] + ein erläuternder Satz, nur aus den Datenfeldern
+export function provenanceRows(s) {
+  const rows = [['Art', s.kind === 'quelle' ? 'Quellenangabe' : s.kind === 'abgeleitet' ? 'abgeleitet' : 'Modellschätzung']];
   if (s.kind === 'quelle') {
-    const p = s.prec === 'ca' ? ' Die Quelle nennt den Wert als «ca.».' : s.prec === 'rund' ? ' Die Quelle nennt den Wert als «rund».'
-      : s.prec === 'spanne' ? ` Die Quelle nennt eine Spanne (${depthText(s)}); im Modell wird ${fmtM(s.z)} m verwendet.` : '';
-    return `Zahl aus der Quelle, kein eigenes Messergebnis.${p}${s.ref ? ` Bezug laut Quelle: ${s.ref}.` : ''}`;
+    if (s.prec === 'spanne') rows.push(['Angabe der Quelle', s.angabe || `${Math.abs(s.rng[0])}–${Math.abs(s.rng[1])} m`]);
+    else rows.push(['Genauigkeit', PREC[s.prec] || '–']);
+    if (s.ref) rows.push(['Bezug', `${s.ref} (laut Quelle)`]);
+    if (s.quelle) rows.push(['Quelle', s.quelle]);
+    if (s.prec === 'spanne') rows.push(['Im Modell', `${fmtM(s.z)} m (Mitte der Spanne)`]);
+  } else if (s.kind === 'abgeleitet') {
+    if (s.quelle) rows.push(['Herleitung', s.quelle]);
+  } else {
+    rows.push(['Verfahren', s.methode || 'Modell']);
   }
-  if (s.kind === 'abgeleitet') return `Berechnet, nicht direkt angegeben: ${s.quelle}.`;
-  return `Keine Quellenangabe – Schätzung nach ${s.methode || 'Modell'}.`;
+  return rows;
+}
+
+export function provenanceNote(s) {
+  if (s.kind === 'quelle') return 'Zahl aus der genannten Quelle, kein eigenes Messergebnis.';
+  if (s.kind === 'abgeleitet') return 'Aus Zahlen der Quelle berechnet, keine direkte Angabe.';
+  return 'Für diesen Bahnhof gibt es keine Zahlenangabe; der Wert ist eine Schätzung des Modells.';
 }

@@ -2,10 +2,10 @@ import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import Scene from './components/Scene';
 import Panel from './components/Panel';
 import TimeControl from './components/TimeControl';
-import { StationCard, LineCard, depthText } from './components/Card';
+import { StationCard, LineCard } from './components/Card';
 import { END_YEAR, DEFAULT_EXAG, DEEP_LABEL, LINE_COLOR, LINES } from './lib/config';
 import { prepare, makeY, surfaceY, lineChain, lineProfile, isUnderground } from './lib/model';
-import { statusShort } from './lib/depth';
+import { depthText, statusShort } from './lib/depth';
 import { isoForYear, stateAt, sectionOpenAt, interruptionAt, nameAt, formatDate, normDate, yearOf } from './lib/time';
 
 const load = (name) => fetch(`/data/${name}`, { cache: 'no-cache' }).then((r) => {
@@ -155,7 +155,8 @@ export default function App() {
     return () => window.removeEventListener('keydown', k);
   }, []);
 
-  useEffect(() => { window.__app = { year, opts, stations: view?.stations.length, sections: view?.sectionVisible.filter(Boolean).length, labels: labelItems.length, stats, sel }; });
+  // Prüfhaken für Szenario-Skripte (ersetzt keinen Klick-Test der Oberfläche)
+  useEffect(() => { window.__pick = { station: (id, fly = false) => pickStation(id, fly), line: (l) => pickLine(l) }; window.__app = { year, opts, stations: view?.stations.length, sections: view?.sectionVisible.filter(Boolean).length, labels: labelItems.length, stats, sel }; });
 
   // подсказка при наведении
   let tip = null;
