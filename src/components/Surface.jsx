@@ -6,11 +6,10 @@ import { fromXZ } from '../lib/geo';
 // Схема города на поверхности (как «схема» у 3d-metro): только вода, зелень и главные улицы
 // из berlin.pmtiles, без подписей. Рендерится один раз невидимой картой MapLibre в текстуру.
 import { CITY } from '../lib/city';
-const TILES = `${window.location.origin}/tiles/${CITY.tiles || 'berlin.pmtiles'}`;
 const GREEN = ['park', 'forest', 'wood', 'grass', 'cemetery', 'garden', 'nature_reserve', 'golf_course', 'allotments', 'meadow', 'recreation_ground', 'playground'];
 const STYLE = {
   version: 8,
-  sources: { pm: { type: 'vector', url: `pmtiles://${TILES}` } },
+  sources: {},
   layers: [
     { id: 'bg', type: 'background', paint: { 'background-color': '#D9DDE0' } },
     { id: 'green', type: 'fill', source: 'pm', 'source-layer': 'landuse', filter: ['in', ['get', 'kind'], ['literal', GREEN]], paint: { 'fill-color': '#CBD5C7' } },
@@ -40,7 +39,7 @@ function renderTexture(bbox, maxPx = 4096) {
   document.body.appendChild(div);
   return new Promise((resolve) => {
     const map = new maplibregl.Map({
-      container: div, style: STYLE, center, zoom, pixelRatio: 1, interactive: false, attributionControl: false,
+      container: div, style: { ...STYLE, sources: { pm: { type: 'vector', url: `pmtiles://${window.location.origin}/tiles/${CITY.tiles}` } } }, center, zoom, pixelRatio: 1, interactive: false, attributionControl: false,
       fadeDuration: 0, maxCanvasSize: [W, W], canvasContextAttributes: { preserveDrawingBuffer: true, antialias: true },
     });
     let done = false;
