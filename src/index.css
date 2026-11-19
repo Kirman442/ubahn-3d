@@ -61,7 +61,7 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 .seg button { flex: 1; border: 0; background: none; padding: 4px 6px; border-radius: 4px; font-size: 0.76rem; white-space: nowrap; }
 .seg button[aria-pressed='true'] { background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15); font-weight: 600; }
 .range { width: 100%; margin: 0; accent-color: var(--ochre); }
-.ramp { display: grid; grid-template-columns: 1fr 1fr; margin-top: 6px; font-size: 0.7rem; color: var(--muted); }
+.ramp { display: grid; grid-template-columns: 1fr 1fr; margin-top: 4px; font-size: 0.7rem; color: var(--muted); }
 .ramp span { grid-column: 1 / 3; height: 8px; border-radius: 4px; }
 .ramp small:last-child { text-align: right; }
 .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 8px; }
@@ -110,6 +110,19 @@ main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 .legend-mini i { display: inline-block; width: 12px; height: 4px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
 .legend-mini .earth-sw { background: var(--earth); height: 8px; }
 .legend-mini .hollow { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid; background: transparent; }
+.legend-mini .dot-fill { width: 8px; height: 8px; border-radius: 50%; }
+.legend-mini .dot-sq { width: 8px; height: 8px; border-radius: 1px; }
+.prof .axis-t { font-size: 9px; fill: var(--muted); }
+.card .status { margin: 0 0 4px; }
+.tag { display: inline-block; padding: 1px 7px; border-radius: 9px; font-size: 0.7rem; font-weight: 600; border: 1px solid var(--rule); color: var(--ink); background: var(--chip); }
+.tag.quelle { border-color: #8FA9C4; }
+.tag.abgeleitet { border-style: dashed; }
+.tag.modell { color: var(--muted); border-style: dotted; }
+.scope { margin-top: -2px; }
+.ramp-box { margin-top: 6px; font-size: 0.7rem; color: var(--muted); }
+.ramp-box p { margin: 2px 0; }
+.ramp-ticks { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
+.sw-above { display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: #9AA79A; vertical-align: -1px; margin-right: 3px; }
 
 .views { position: absolute; z-index: 3; left: 50%; transform: translateX(-50%); top: 12px; }
 .views .seg { background: var(--panel); box-shadow: var(--shadow); border: 1px solid var(--rule); }

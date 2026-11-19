@@ -1,7 +1,7 @@
 import { LINES, DEEP_LABEL } from '../lib/config';
 import { RAMP_CSS } from '../lib/colors';
 import { nameAt } from '../lib/time';
-import { depthText } from './Card';
+import { depthText, statusShort, isApprox } from '../lib/depth';
 
 const Seg = ({ value, set, options }) => (
   <div className="seg" role="group">
@@ -12,14 +12,19 @@ const Seg = ({ value, set, options }) => (
 );
 
 export default function Panel(p) {
-  const { stats, hiddenLines, toggleLine, focusLine, onLine, opts, setOpt, deepest, iso, onStation } = p;
+  const { stats, hiddenLines, toggleLine, focusLine, onLine, opts, setOpt, deepest, iso, year, onStation } = p;
+  const md = stats.maxDepthSt;
   return (
     <aside className="panel">
       <div className="stats">
-        <div className="stat"><span className="v">{stats.stations}</span><span className="k">Bahnhöfe</span></div>
-        <div className="stat"><span className="v">{stats.km.toFixed(0)}</span><span className="k">km Strecke</span></div>
-        <div className="stat"><span className="v">{stats.maxDepth ? stats.maxDepth.toFixed(0) : '–'}</span><span className="k">m max. Tiefe</span></div>
+        <div className="stat" title="Stationsknoten in Betrieb; mehrere Bahnsteig-/Ebenen-Einträge eines Bahnhofs zählen einmal">
+          <span className="v">{stats.stations}</span><span className="k">Bahnhöfe</span></div>
+        <div className="stat" title="Summe der Linienabschnitte. Gemeinsam befahrene Abschnitte (z. B. U1/U3) sind je Linie gezählt – keine Länge der Infrastruktur.">
+          <span className="v">{stats.km.toFixed(0)}</span><span className="k">km Linienlänge</span></div>
+        <div className="stat" title={md ? `Tiefster Tunnelbahnhof im Datensatz: ${nameAt(md, iso)} ${md.line}, ${statusShort(md)}` : undefined}>
+          <span className="v">{md ? `${isApprox(md) ? '≈' : ''}${stats.maxDepth.toFixed(0)}` : '–'}</span><span className="k">m max. Stationstiefe</span></div>
       </div>
+      <p className="hint small scope">Gesamtnetz zum Jahresende {year} · unabhängig von ausgeblendeten Linien · km = Summe je Linie (gemeinsame Abschnitte doppelt)</p>
 
       <h2>Linien</h2>
       <ul className="lines">
@@ -49,6 +54,7 @@ export default function Panel(p) {
 
       <h2>Überhöhung <output>×{opts.exag}</output></h2>
       <input className="range" type="range" min={1} max={200} step={1} value={opts.exag} onChange={(e) => setOpt('exag', Number(e.target.value))} aria-label="Vertikale Überhöhung" />
+      <p className="hint small">Höhenunterschiede {opts.exag}-fach vergrößert; Meterangaben bleiben unverändert. Kugeln und Röhren sind schematisch, nicht maßstäblich.</p>
 
       <h2>Oberfläche {opts.surface !== 'off' && <output>{Math.round(opts.surfOp * 100)} %</output>}</h2>
       <Seg value={opts.surface} set={(v) => setOpt('surface', v)} options={[['map', 'Stadtplan'], ['plain', 'Fläche'], ['off', 'aus']]} />
@@ -58,22 +64,33 @@ export default function Panel(p) {
       <p className="hint small">Von oben: Stadtplan · von unten: Erdreich (braun)</p>
 
       <h2>Höhe</h2>
-      <Seg value={opts.mode} set={(v) => setOpt('mode', v)} options={[['rel', 'unter Straße'], ['abs', 'ü. NHN (Relief)']]} />
+      <Seg value={opts.mode} set={(v) => setOpt('mode', v)} options={[['rel', 'Tiefe unter Gelände'], ['abs', 'ü. NHN']]} />
+      <p className="hint small">{opts.mode === 'rel'
+        ? 'Tiefe relativ zum lokalen Geländeniveau am Bahnhof (Modell, DGM1 geglättet) – nicht der Abstand zur Straße direkt über jedem Tunnelpunkt.'
+        : 'Absolute Höhen über Normalhöhennull. Die Kartenfläche bleibt eben (schematisch); ein positiver NHN-Wert heißt nicht «über der Straße».'}</p>
 
       <h2>Farbe</h2>
       <Seg value={opts.color} set={(v) => setOpt('color', v)} options={[['line', 'nach Linie'], ['depth', 'nach Tiefe']]} />
-      {opts.color === 'depth' && <div className="ramp"><span style={{ background: RAMP_CSS }} /><small>0 m</small><small>−22 m</small></div>}
+      {opts.color === 'depth' && (
+        <div className="ramp-box">
+          <p className="small"><b>Tiefe unter Geländeniveau</b> (feste Skala, auch bei NHN)</p>
+          <div className="ramp"><span style={{ background: RAMP_CSS }} /></div>
+          <div className="ramp-ticks"><small>0</small><small>−5,5</small><small>−11</small><small>−16,5</small><small>≤ −22 m</small></div>
+          <p className="small"><i className="sw-above" /> oberirdisch / Geländeniveau</p>
+        </div>
+      )}
 
       <h2>Namen</h2>
       <Seg value={opts.labels} set={(v) => setOpt('labels', v)} options={[['none', 'keine'], ['deep', `ab ${DEEP_LABEL} m`], ['all', 'alle']]} />
 
       <h2>Ebenen</h2>
       <div className="checks">
-        <label><input type="checkbox" checked={opts.shafts} onChange={(e) => setOpt('shafts', e.target.checked)} /> Schächte</label>
+        <label><input type="checkbox" checked={opts.shafts} onChange={(e) => setOpt('shafts', e.target.checked)} /> Verbindung zum Gelände</label>
         <label><input type="checkbox" checked={opts.grid} onChange={(e) => setOpt('grid', e.target.checked)} /> Raster</label>
         <label><input type="checkbox" checked={opts.levels} onChange={(e) => setOpt('levels', e.target.checked)} /> Tiefenebenen</label>
-        <label><input type="checkbox" checked={opts.transfers} onChange={(e) => setOpt('transfers', e.target.checked)} /> Umstiege</label>
+        <label><input type="checkbox" checked={opts.transfers} onChange={(e) => setOpt('transfers', e.target.checked)} /> Umstiege (Nähe)</label>
       </div>
+      <p className="hint small">Schematisch: senkrechte Linien zeigen keine echten Zugänge; Umstiege verbinden Bahnhöfe verschiedener Linien unter 300 m Abstand, nicht vermessene Gänge.</p>
 
       {deepest.length > 0 && (
         <>
@@ -86,10 +103,10 @@ export default function Panel(p) {
               </button></li>
             ))}
           </ol>
-          <p className="hint small">Nur Tunnelbahnhöfe · Tiefe unter der Straße wie auf der Karte · ≈ geschätzt</p>
+          <p className="hint small">Nur Tunnelbahnhöfe · Tiefe unter lokalem Geländeniveau wie auf der Karte · ohne ≈: Zahl aus Quelle · ≈: «ca.»/«rund» in der Quelle, abgeleitet oder Modellschätzung</p>
         </>
       )}
-      <p className="hint">Gelände: DGM1 © Geoportal Berlin (dl-de/zero-2-0). Tiefen: Wikipedia (CC BY-SA 4.0), sonst Schätzung nach OSM. Linke Maus: drehen · rechte: verschieben · Rad: zoomen.</p>
+      <p className="hint">Gelände: DGM1 © Geoportal Berlin (dl-de/zero-2-0). Tiefen: Quellenangaben aus Wikipedia (CC BY-SA 4.0) für einzelne Bahnhöfe, sonst Modellschätzung nach OSM-Bahnsteigebene oder Bauart. Linke Maus: drehen · rechte: verschieben · Rad: zoomen.</p>
     </aside>
   );
 }

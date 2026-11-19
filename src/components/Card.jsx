@@ -1,15 +1,14 @@
 import { formatDate, nameAt, stateAt, yearOf, INTERRUPTION_LABEL } from '../lib/time';
-import { fmtM } from '../lib/colors';
+import { depthText, statusShort, statusLong, isApprox } from '../lib/depth';
+import { isUnderground } from '../lib/model';
+
+export { depthText };
 
 const Badge = ({ line, color }) => <span className="badge" style={{ background: color }}>{line}</span>;
 const n1 = (v) => v.toFixed(1).replace('.', ',');
 const n0 = (v) => Math.round(v).toString();
 const LAGE = { Tunnel: 'Tunnel', Viadukt: 'Hochbahn (Viadukt)', Damm: 'Damm', Einschnitt: 'Einschnitt', Plan: 'ebenerdig' };
-
-export function depthText(s) {
-  if (Math.abs(s.z) < 0.5) return '0 m';
-  return `${s.measured ? '' : '≈ '}${fmtM(s.z)} m`;
-}
+const where = (z) => (z < -0.5 ? 'unter lokalem Geländeniveau' : z > 0.5 ? 'über lokalem Geländeniveau' : 'auf Geländeniveau');
 
 export function StationCard({ s, iso, transfers, onClose, onLine, onStation }) {
   const nameNow = nameAt(s, iso);
@@ -21,18 +20,20 @@ export function StationCard({ s, iso, transfers, onClose, onLine, onStation }) {
       <div className="ttl"><Badge line={s.line} color={s.color} /><strong>{nameNow}</strong></div>
       {nameNow !== s.name && <p className="muted">heute: {s.name}</p>}
       {state === 'interrupted' && <p className="warn">Zu diesem Zeitpunkt ohne Halt</p>}
-      <div className="depth">{s.measured ? '' : '≈ '}{Math.abs(s.z) < 0.5 ? '0' : fmtM(s.z)}<small>{s.z < -0.5 ? ' m (unter Straßenniveau)' : s.z > 0.5 ? ' m (über Straßenniveau)' : ' m (Straßenniveau)'}</small></div>
+      <div className="depth">{depthText(s).replace(/ m$/, '')}<small> m {where(s.z)}</small></div>
+      <p className="status"><span className={`tag ${s.kind}`}>{statusShort(s)}</span></p>
       {s.z < 0 && <div className="bar" aria-hidden="true"><span style={{ width: `${pct}%` }} /></div>}
-      {!s.measured && <p className="note">Tiefe geschätzt ({s.src}). Gemessene Werte gibt es bisher für 30 Bahnhöfe.</p>}
+      <p className="note">{statusLong(s)}</p>
       <dl className="facts">
-        <dt>Gelände</dt><dd>{n1(s.ground)} m ü. NHN (DGM1)</dd>
-        <dt>Bahnsteig</dt><dd>≈ {n1(s.abs)} m ü. NHN</dd>
+        <dt>Geländeniveau</dt><dd>{n1(s.ground)} m ü. NHN <span className="muted">(DGM1, Median um den Bf.)</span></dd>
+        <dt>Höhenlage</dt><dd>≈ {n1(s.abs)} m ü. NHN <span className="muted">(Modell)</span></dd>
         {s.situation && (<><dt>Lage</dt><dd>{LAGE[s.situation] || s.situation}</dd></>)}
         <dt>Eröffnet</dt><dd>{formatDate(s.opened)}</dd>
         {s.closed && (<><dt>Geschlossen</dt><dd>{formatDate(s.closed)}</dd></>)}
         {s.district && (<><dt>Ortsteil</dt><dd>{s.district}</dd></>)}
-        {s.measured && (<><dt>Quelle</dt><dd>{s.src}</dd></>)}
+        {s.kind === 'quelle' && (<><dt>Quelle</dt><dd>{s.quelle}</dd></>)}
       </dl>
+      <p className="hint small">Höhenlage = modellierte Lage des Bahnhofs; ob Bahnsteig oder Gleis gemeint ist, ist in den Quellen nicht einheitlich.</p>
       {transfers.length > 0 && (
         <p className="meta">Umstieg: {transfers.map((o, i) => (
           <span key={o.id}>{i ? '; ' : ''}<button type="button" className="link" onClick={() => onStation(o.id)}>{o.line}</button> {depthText(o)}</span>
@@ -77,7 +78,8 @@ function Profile({ prof, color, iso, onStation }) {
   const ticks = [];
   for (let k = 0; k <= kmTot + 1e-6; k += kmStep) ticks.push(k);
   return (
-    <svg className="prof" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Längsprofil: Gelände und Gleis, m ü. NHN">
+    <svg className="prof" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Längsprofil der Hauptstrecke: Gelände und Modelltrasse, Höhe über NHN in Metern">
+      <text className="axis-t" x={ml - 30} y={mt - 2}>Höhe ü. NHN (m)</text>
       {grid.map((v) => (
         <g key={v}><line className="gridl" x1={ml} x2={W - mr} y1={Yv(v)} y2={Yv(v)} /><text x={ml - 4} y={Yv(v) + 3} textAnchor="end">{v}</text></g>
       ))}
@@ -87,13 +89,21 @@ function Profile({ prof, color, iso, onStation }) {
       <polyline className="gline" points={ground} />
       <polyline fill="none" stroke={color} strokeWidth="2.2" strokeLinejoin="round" points={track} />
       {prof.marks.map((m) => {
-        const hollow = !m.st.measured;
+        const k = m.st.kind;
+        const title = <title>{`${nameAt(m.st, iso)}: ${depthText(m.st)} (${statusShort(m.st)}), ≈ ${n1(m.st.abs)} m ü. NHN`}</title>;
+        const cx = X(m.d); const cy = Yv(m.st.abs);
+        // Quellenangabe: gefüllter Kreis · abgeleitet: gefülltes Quadrat · Modellschätzung: hohler Kreis
+        if (k === 'abgeleitet') {
+          return (
+            <rect key={m.name + m.d} className="dot" x={cx - 3.4} y={cy - 3.4} width="6.8" height="6.8"
+              fill={color} stroke="var(--panel-solid)" strokeWidth="1.5" onClick={() => onStation(m.st.id)}>{title}</rect>
+          );
+        }
+        const hollow = k !== 'quelle';
         return (
-          <circle key={m.name + m.d} className="dot" cx={X(m.d)} cy={Yv(m.st.abs)} r="3.6"
+          <circle key={m.name + m.d} className="dot" cx={cx} cy={cy} r="3.6"
             fill={hollow ? 'var(--panel-solid)' : color} stroke={hollow ? color : 'var(--panel-solid)'} strokeWidth="1.5"
-            onClick={() => onStation(m.st.id)}>
-            <title>{`${nameAt(m.st, iso)}: ${depthText(m.st)}, ${n1(m.st.abs)} m ü. NHN`}</title>
-          </circle>
+            onClick={() => onStation(m.st.id)}>{title}</circle>
         );
       })}
     </svg>
@@ -101,12 +111,15 @@ function Profile({ prof, color, iso, onStation }) {
 }
 
 export function LineCard({ line, color, stations, prof, iso, hidden, year, onShow, onClose, onStation }) {
-  const under = stations.filter((s) => s.z < 0);
+  // Kennzahlen beziehen sich auf Bahnhofseinträge der Linie (nicht auf alle Trassenpunkte)
+  const under = stations.filter(isUnderground);
   const deepest = under.reduce((m, s) => (!m || s.z < m.z ? s : m), null);
   const avg = under.length ? under.reduce((a, s) => a - s.z, 0) / under.length : 0;
+  const avgApprox = under.some(isApprox);
   const lowest = stations.reduce((m, s) => (!m || s.abs < m.abs ? s : m), null);
   const gr = stations.map((s) => s.ground);
-  const nMeas = stations.filter((s) => s.measured).length;
+  const cnt = { quelle: 0, abgeleitet: 0, modell: 0 };
+  stations.forEach((s) => { cnt[s.kind] = (cnt[s.kind] || 0) + 1; });
   return (
     <div className="card">
       <button type="button" className="close" onClick={onClose} aria-label="Schließen">×</button>
@@ -118,17 +131,20 @@ export function LineCard({ line, color, stations, prof, iso, hidden, year, onSho
           <dl className="facts">
             <dt>Bahnhöfe</dt><dd>{stations.length}</dd>
             {prof && (<><dt>Länge</dt><dd>{(prof.total / 1000).toFixed(1).replace('.', ',')} km (Hauptstrecke)</dd></>)}
-            {deepest && (<><dt>Tiefe</dt><dd>bis {n1(-deepest.z)} m, Ø {n1(avg)} m</dd></>)}
-            {deepest && (<><dt>Tiefster Bf.</dt><dd><button type="button" className="link" onClick={() => onStation(deepest.id)}>{nameAt(deepest, iso)}</button></dd></>)}
-            <dt>Tiefster Punkt</dt><dd>{nameAt(lowest, iso)}, ≈ {n0(lowest.abs)} m ü. NHN</dd>
-            <dt>Gelände</dt><dd>{n0(Math.min(...gr))}–{n0(Math.max(...gr))} m ü. NHN</dd>
+            {deepest && (<><dt>Tiefster Bf.</dt><dd><button type="button" className="link" onClick={() => onStation(deepest.id)}>{nameAt(deepest, iso)}</button> {depthText(deepest)}</dd></>)}
+            {deepest && (<><dt>Ø Tiefe</dt><dd>{avgApprox ? '≈ ' : ''}{n1(avg)} m <span className="muted">({under.length} Tunnelbahnhöfe, unter Gelände)</span></dd></>)}
+            <dt>Niedrigste Stationshöhe</dt><dd>{nameAt(lowest, iso)}, ≈ {n0(lowest.abs)} m ü. NHN</dd>
+            <dt>Gelände an den Bf.</dt><dd>{n0(Math.min(...gr))}–{n0(Math.max(...gr))} m ü. NHN</dd>
           </dl>
           {prof && <Profile prof={prof} color={color} iso={iso} onStation={onStation} />}
           <div className="legend-mini">
-            <span><i className="earth-sw" />Gelände (DGM1)</span>
-            <span><i style={{ background: color }} />Gleis</span>
-            <span><i className="hollow" style={{ borderColor: color }} />geschätzt ({stations.length - nMeas})</span>
+            <span><i className="earth-sw" />Gelände (DGM1, geglättet)</span>
+            <span><i style={{ background: color }} />Modelltrasse</span>
+            <span><i className="dot-fill" style={{ background: color }} />Quellenangabe ({cnt.quelle})</span>
+            {cnt.abgeleitet > 0 && <span><i className="dot-sq" style={{ background: color }} />abgeleitet ({cnt.abgeleitet})</span>}
+            <span><i className="hollow" style={{ borderColor: color }} />Modellschätzung ({cnt.modell})</span>
           </div>
+          <p className="hint small">Längsprofil der längsten durchgehenden Strecke · Höhen ü. NHN · Trasse interpoliert und geglättet, keine Vermessung.</p>
         </>
       )}
     </div>

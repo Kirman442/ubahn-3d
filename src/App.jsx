@@ -5,6 +5,7 @@ import TimeControl from './components/TimeControl';
 import { StationCard, LineCard, depthText } from './components/Card';
 import { END_YEAR, DEFAULT_EXAG, DEEP_LABEL, LINE_COLOR, LINES } from './lib/config';
 import { prepare, makeY, surfaceY, lineChain, lineProfile, isUnderground } from './lib/model';
+import { statusShort } from './lib/depth';
 import { isoForYear, stateAt, sectionOpenAt, interruptionAt, nameAt, formatDate, normDate, yearOf } from './lib/time';
 
 const load = (name) => fetch(`/data/${name}`, { cache: 'no-cache' }).then((r) => {
@@ -111,7 +112,7 @@ export default function App() {
       (lineNodes[p.line] ||= new Set()).add(p.node);
       s.recByLine[p.line] = (s.recByLine[p.line] || 0) + 1;
       seen.add(p.node);
-      if (isUnderground(p)) s.maxDepth = Math.max(s.maxDepth, -p.z);
+      if (isUnderground(p) && -p.z > s.maxDepth) { s.maxDepth = -p.z; s.maxDepthSt = p; }
     }
     for (const [l, set] of Object.entries(lineNodes)) s.byLine[l] = set.size;
     s.stations = seen.size; s.ghost = ghost.size; s.closedNoStop = noStop.size;
@@ -165,7 +166,7 @@ export default function App() {
       tip = (
         <div className="tip" style={pos}>
           <b>{nameAt(hoverStation, iso)}</b><span className="m">{depthText(hoverStation)}</span><br />
-          <span className="muted">{hoverStation.line} · {Math.round(hoverStation.abs)} m ü. NHN{hoverStation.state === 'interrupted' ? ' · ohne Halt' : ''}</span>
+          <span className="muted">{hoverStation.line} · {statusShort(hoverStation)} · ≈ {Math.round(hoverStation.abs)} m ü. NHN{hoverStation.state === 'interrupted' ? ' · ohne Halt' : ''}</span>
         </div>
       );
     } else if (hover.kind === 'line') {
@@ -182,7 +183,7 @@ export default function App() {
     <div className="app">
       <header>
         <h1>Berliner U-Bahn in der Tiefe <span className="yr">{year}</span></h1>
-        <p>Tunnel, Hochbahn und Bahnhöfe in echter Lage – Höhen ×{opts.exag} überhöht</p>
+        <p>Tunnel, Hochbahn und Bahnhöfe in echter Lage – Höhenunterschiede ×{opts.exag} überhöht, Meterangaben unverändert · schematisch</p>
       </header>
       <main ref={main}>
         {error && <div className="error">Daten konnten nicht geladen werden: {error}</div>}
@@ -195,7 +196,7 @@ export default function App() {
         {tip}
         {data && (
           <Panel stats={stats} hiddenLines={hiddenLines} toggleLine={toggleLine} focusLine={focusLine} onLine={pickLine}
-            opts={opts} setOpt={setOpt} deepest={deepest} iso={iso} onStation={(id) => pickStation(id)} />
+            opts={opts} setOpt={setOpt} deepest={deepest} iso={iso} year={year} onStation={(id) => pickStation(id)} />
         )}
         {selStation && (
           <StationCard s={selStation} iso={iso}

@@ -15,8 +15,8 @@ export function prepare(net, geo) {
     const p = props[s.id] || {};
     return {
       ...p, ...s, x, zz, color: LINE_COLOR[s.line],
-      abs: s.ground + s.z,
-      measured: /gemessen|abgeleitet/.test(s.src || ''),
+      abs: s.ground + s.z,   // modellierte Höhenlage des Bahnhofs (m ü. NHN); Bahnsteig/Gleis nicht normiert
+      kind: s.kind || 'modell',
     };
   });
   const sections = net.sections.map((s, i) => {

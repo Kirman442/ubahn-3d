@@ -37,7 +37,7 @@ export default function Guides({ extent, mode, exag, showGrid, showLevels }) {
       grid.material.transparent = true; grid.material.opacity = mode === 'abs' ? 0.18 : 0.35; grid.material.depthWrite = false;
       G.add(grid);
       const n = textSprite('N ↑', '#5A636E', 22, 420); n.center.set(0.5, 0.5); n.position.set(cx, 0, z0 - 600); G.add(n);
-      const sc = textSprite(mode === 'abs' ? `Raster 1 km · Ebene ${H0} m ü. NHN` : 'Raster 1 km · Straßenniveau', '#8C959F', 18, 220);
+      const sc = textSprite(mode === 'abs' ? `Raster 1 km · Ebene ${H0} m ü. NHN` : 'Raster 1 km · Geländeniveau (Bezug)', '#8C959F', 18, 220);
       sc.center.set(0, 0.5); sc.position.set(x0, 0, z1 + 400); G.add(sc);
     }
 
