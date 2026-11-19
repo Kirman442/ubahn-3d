@@ -95,7 +95,10 @@ for (const { L, nm, iv } of Object.values(stIv)) {
   const code = r.id.split('-').slice(1).join('-');
   merge(iv).forEach(([s, e], k) => {
     const id = `${L}-${code}${k ? `~${k}` : ''}`;
-    stations.push({ id, line: L, name: nm, lon, lat, z, ground: r.ground_dgm1_m, src, ...dk });
+    // Gelände fehlt im Paket (z. B. Marienplatz): Wert am Ende des anschließenden Abschnitts (geglättetes DGM1)
+    let ground = r.ground_dgm1_m;
+    if (ground == null) { const sc = sections.find((x) => x.line === L && (x.from === nm || x.to === nm)); if (sc) ground = sc.from === nm ? sc.g[0] : sc.g[sc.g.length - 1]; }
+    stations.push({ id, line: L, name: nm, lon, lat, z, ground, src, ...dk });
     props.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [lon, lat] }, properties: {
       id, name: nm, line: L, opened: later(s, r.station_opened || r.opened), closed: e, names: r.names || [], interruptions: r.interruptions || [],
       situation: r.position === 'surface' ? (z > 1 ? 'Hochbahn' : 'oberirdisch') : 'Tunnel', wiki_de: r.dewiki, wikidata: r.wikidata, depth_m: -z } });

@@ -148,22 +148,31 @@ function CityApp({ city, choose, opts, setOpts }) {
       focus: !!focusLine && s.line === focusLine, bg: !!focusLine && s.line !== focusLine && !strong,
     });
     const showNames = !(focusLine && !lineNames); // «Namen aus» in der Linienkarte
-    if (showNames) nodes.forEach((list, node) => {
-      if (list.some((s) => strongIds.has(s.id))) return;
-      const lines = [...new Set(list.map((s) => s.line))];
-      const nset = list.map((s) => [...(nbrs[`${s.line}|${s.name}`] || [])].sort().join('|'));
-      const key = list.some((s) => (nbrs[`${s.line}|${s.name}`]?.size || 0) <= 1) || new Set(nset).size > 1;
-      const want = opts.labels === 'all' || (opts.labels === 'key' && key)
-        || (opts.labels === 'deep' && list.some((s) => s.z <= -DEEP_LABEL)) || (focusLine && lines.includes(focusLine));
+    // Gewählte Linie: nur ihre Bahnhöfe (mit Tiefe ihrer Bahnsteige), keine Hintergrundschilder.
+    // Übersicht: nur Name + Liniensignets, ohne Tiefe (Tiefe beim Überfahren/Wählen); Modus «ab 10 m» behält die Tiefe.
+    if (showNames) nodes.forEach((all, node) => {
+      if (all.some((s) => strongIds.has(s.id))) return;
+      const lines = [...new Set(all.map((s) => s.line))];
+      let list = all; let want; let withDepth;
+      if (focusLine) {
+        if (!lines.includes(focusLine)) return;
+        list = all.filter((s) => s.line === focusLine); want = true; withDepth = true;
+      } else {
+        const nset = all.map((s) => [...(nbrs[`${s.line}|${s.name}`] || [])].sort().join('|'));
+        const key = all.some((s) => (nbrs[`${s.line}|${s.name}`]?.size || 0) <= 1) || new Set(nset).size > 1;
+        want = opts.labels === 'all' || (opts.labels === 'key' && key) || (opts.labels === 'deep' && all.some((s) => s.z <= -DEEP_LABEL));
+        withDepth = opts.labels === 'deep';
+      }
       if (!want) return;
       const top = list.reduce((a, b) => (b.z > a.z ? b : a));
-      const zs = list.map((s) => s.z); const lo = Math.min(...zs); const hi = Math.max(...zs);
-      const approx = list.some(isApprox);
-      const depth = hi - lo < 0.5 ? depthText(top) : `${approx ? '≈ ' : ''}${fmtM(lo, 1)}…${fmtM(hi, 1)} m`;
-      const onFocus = !!focusLine && lines.includes(focusLine);
+      let depth = null;
+      if (withDepth) {
+        const zs = list.map((s) => s.z); const lo = Math.min(...zs); const hi = Math.max(...zs);
+        depth = hi - lo < 0.5 ? depthText(top) : `${list.some(isApprox) ? '≈ ' : ''}${fmtM(lo, 1)}…${fmtM(hi, 1)} m`;
+      }
       out.push({ key: `n:${node}`, x: top.x, y: Y(top.z, top.ground), z: top.zz, text: nameAt(top, iso), depth,
-        lines: CITY.lines.map((l) => l.id).filter((l) => lines.includes(l)), color: (onFocus ? list.find((s) => s.line === focusLine) : top).color,
-        ghost: list.every((s) => s.state === 'interrupted'), strong: false, focus: onFocus, bg: !!focusLine && !onFocus });
+        lines: CITY.lines.map((l) => l.id).filter((l) => lines.includes(l)), color: top.color,
+        ghost: list.every((s) => s.state === 'interrupted'), strong: false, focus: !!focusLine, bg: false });
     });
     // «Etagen»: in dichten Modi (alle, ab 10 m, Linienkarte) steht jedes Schild je nach Linie höher, mit Führungsstrich
     const floors = opts.labels === 'all' || opts.labels === 'deep' || !!focusLine;

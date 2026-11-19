@@ -12,7 +12,7 @@ import { isUnderground } from '../lib/model';
 
 import { lineBg } from '../lib/city';
 const Badge = ({ line, color }) => <span className="badge" style={{ background: lineBg(line, color) }}>{line}</span>;
-const n1 = (v) => v.toFixed(1).replace('.', ',');
+const n1 = (v) => (v == null || Number.isNaN(v) ? '–' : v.toFixed(1).replace('.', ','));
 const n0 = (v) => Math.round(v).toString();
 const LAGE = { Tunnel: 'Tunnel', Viadukt: 'Hochbahn (Viadukt)', Damm: 'Damm', Einschnitt: 'Einschnitt', Plan: 'ebenerdig' };
 const where = (z) => (z < -0.5 ? 'unter lokalem Geländeniveau' : z > 0.5 ? 'über lokalem Geländeniveau' : 'auf Geländeniveau');
