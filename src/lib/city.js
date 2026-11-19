@@ -10,7 +10,15 @@ export const CITIES = [
     dgm: 'DGM1 Berlin', search: 'z. B. Hermannplatz',
     attribution: 'Gelände: DGM1 © Geoportal Berlin (dl-de/zero-2-0) · Tiefen: Wikipedia (CC BY-SA 4.0) · Karte: OpenStreetMap-Mitwirkende',
   },
-  { id: 'hamburg', name: 'Hamburg', ready: false },
+  {
+    id: 'hamburg', name: 'Hamburg', ready: true, data: 'hamburg/', tiles: null,
+    origin: { lon: 9.9937, lat: 53.5503 }, h0: 10, startYear: 1910,
+    // Farben aus den OSM-Routenrelationen (colour); ZR = Zweigbahn Rothenburgsort 1915–1943, heute ohne Nummer
+    lines: [{ id: 'U1', color: '#006AB3' }, { id: 'U2', color: '#E2001A' }, { id: 'U3', color: '#FFDD00' }, { id: 'U4', color: '#256D7B' }, { id: 'ZR', color: '#8C8C8C' }],
+    dgm: 'DGM1 Hamburg, außerhalb EU-DEM', search: 'z. B. Jungfernstieg',
+    note: 'Gemessen sind 9 Bahnhofstiefen (Wikipedia); die übrigen sind aus Lage, Ebene oder OSM geschätzt, die Trasse dazwischen aus Gelände und Bauregeln. Außerhalb Hamburgs (Norderstedt, Ahrensburg, Großhansdorf) Gelände nach EU-DEM 25 m. U2 und U4 teilen zwischen Jungfernstieg und Berliner Tor dasselbe Gleis; die Röhren sind dort nur zur Lesbarkeit nebeneinander gezeichnet. Liniennummern sind die heutigen; ZR = Zweigbahn Rothenburgsort (1915–1943).',
+    attribution: 'Gelände: DGM1 © Freie und Hansestadt Hamburg, LGV (dl-de/by-2.0), außerhalb EU-DEM (Copernicus) · Geschichte und Tiefen: Wikipedia (CC BY-SA 4.0), Wikidata (CC0) · Lage: © OpenStreetMap-Mitwirkende (ODbL)',
+  },
   {
     id: 'muenchen', name: 'München', ready: true, data: 'muenchen/', tiles: null,
     origin: { lon: 11.5755, lat: 48.1374 }, h0: 520, startYear: 1971,
