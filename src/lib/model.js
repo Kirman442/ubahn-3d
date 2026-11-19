@@ -27,6 +27,7 @@ export function prepare(net, geo) {
     const zs = pts.map((p) => p.z);
     return { ...s, i, pts, dist, color: LINE_COLOR[s.line], length_m: len, zmin: Math.min(...zs), zmax: Math.max(...zs) };
   });
+  assignNodes(stations);
   // пересадки: станции разных линий ближе 300 м
   const transfers = [];
   for (let a = 0; a < stations.length; a++) {
@@ -38,6 +39,30 @@ export function prepare(net, geo) {
   }
   return { stations, sections, transfers };
 }
+
+// Станционный узел (Bahnhof) ≠ запись линии/уровня. Записи объединяются в один узел, если у них
+// одинаковый Wikidata ID или одинаковое название и расстояние ≤ NODE_RADIUS (напр. U1-Nu Nollendorfplatz
+// без wikidata). Объединение транзитивное (union-find), не зависит от порядка записей. Имя без близости
+// и близость без имени не объединяют. Уровни не сливаются — меняется только ключ `node` для подсчёта.
+// (Сведено с сохранённым вариантом ветки ubahn3d-fremd-2026-11-19; на текущих данных оба дают одинаковые группы.)
+export const NODE_RADIUS = 500;
+export function assignNodes(stations) {
+  const parent = stations.map((_, i) => i);
+  const find = (i) => (parent[i] === i ? i : (parent[i] = find(parent[i])));
+  const union = (a, b) => { const ra = find(a); const rb = find(b); if (ra !== rb) parent[Math.max(ra, rb)] = Math.min(ra, rb); };
+  for (let a = 0; a < stations.length; a++) {
+    for (let b = a + 1; b < stations.length; b++) {
+      const A = stations[a]; const B = stations[b];
+      if (A.wikidata && A.wikidata === B.wikidata) union(a, b);
+      else if (A.name === B.name && Math.hypot(A.x - B.x, A.zz - B.zz) <= NODE_RADIUS) union(a, b);
+    }
+  }
+  stations.forEach((s, i) => { const r = stations[find(i)]; s.node = r.wikidata ? `wd:${r.wikidata}` : `id:${r.id}`; });
+  return stations;
+}
+
+// подземная станция: глубже уровня улицы и в тоннеле (Einschnitt — открытая выемка, не подземная)
+export const isUnderground = (s) => s.z < 0 && (/Tunnel/.test(s.situation || '') || !s.situation);
 
 // высота в сцене
 export const makeY = (mode, exag) => (mode === 'abs'

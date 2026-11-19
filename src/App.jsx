@@ -3,9 +3,9 @@ import Scene from './components/Scene';
 import Panel from './components/Panel';
 import TimeControl from './components/TimeControl';
 import { StationCard, LineCard, depthText } from './components/Card';
-import { END_YEAR, DEFAULT_EXAG, DEEP_LABEL, LINE_COLOR } from './lib/config';
-import { prepare, makeY, surfaceY, lineChain, lineProfile } from './lib/model';
-import { isoForYear, stateAt, sectionOpenAt, interruptionAt, nameAt } from './lib/time';
+import { END_YEAR, DEFAULT_EXAG, DEEP_LABEL, LINE_COLOR, LINES } from './lib/config';
+import { prepare, makeY, surfaceY, lineChain, lineProfile, isUnderground } from './lib/model';
+import { isoForYear, stateAt, sectionOpenAt, interruptionAt, nameAt, formatDate, normDate, yearOf } from './lib/time';
 
 const load = (name) => fetch(`/data/${name}`, { cache: 'no-cache' }).then((r) => {
   if (!r.ok) throw new Error(`${name}: HTTP ${r.status}`);
@@ -65,6 +65,20 @@ export default function App() {
   const selStation = sel?.kind === 'station' ? view?.byId[sel.id] : null;
   const hoverStation = hover?.kind === 'station' ? view?.byId[hover.id] : null;
 
+  // gewählter Bahnhof ist im aktuellen Jahr/Filter nicht sichtbar → Grund + Aktion statt stillem Verschwinden
+  const selMissing = useMemo(() => {
+    if (sel?.kind !== 'station' || selStation || !data) return null;
+    const r = data.stations.find((x) => x.id === sel.id);
+    if (!r) return null;
+    const name = nameAt(r, iso);
+    if (hiddenLines.has(r.line)) return { r, name, text: `Linie ${r.line} ist ausgeblendet.`, action: 'Einblenden', run: () => toggleLine(r.line) };
+    if (!r.opened || normDate(r.opened) > iso) return { r, name, text: `Im Jahr ${year} noch nicht eröffnet (Eröffnung ${formatDate(r.opened)}).`, action: `Zu ${yearOf(r.opened)} springen`, run: () => setYear(yearOf(r.opened)) };
+    if (r.closed && normDate(r.closed) <= iso) return { r, name, text: `Seit ${formatDate(r.closed)} geschlossen.`, action: `Zu ${yearOf(r.closed) - 1} springen`, run: () => setYear(yearOf(r.closed) - 1) };
+    if (r.map_from && normDate(r.map_from) > iso) return { r, name, text: `Im Jahr ${year} auf dieser Linie noch nicht in Betrieb (ab ${formatDate(r.map_from)}).`, action: `Zu ${yearOf(r.map_from)} springen`, run: () => setYear(yearOf(r.map_from)) };
+    return { r, name, text: `Im Jahr ${year} nicht sichtbar.` };
+  }, [sel, selStation, data, iso, year, hiddenLines]);
+  const allHidden = hiddenLines.size >= LINES.length;
+
   // подписи: набор зависит только от настроек и выбора, не от камеры
   const labelItems = useMemo(() => {
     if (!view) return [];
@@ -83,20 +97,23 @@ export default function App() {
   }, [view, opts.labels, focusLine, selStation, hoverStation, Y, iso]);
 
   const stats = useMemo(() => {
-    const s = { stations: 0, km: 0, byLine: {}, ghost: 0, closedNoStop: 0, maxDepth: 0 };
+    // Bahnhöfe = Stationsknoten (s.node), nicht Bahnsteig-/Ebenen-Einträge; siehe assignNodes()
+    const s = { stations: 0, km: 0, byLine: {}, recByLine: {}, ghost: 0, closedNoStop: 0, maxDepth: 0 };
     if (!data) return s;
-    const seen = new Set(); const ghost = new Set(); const noStop = new Set();
+    const seen = new Set(); const ghost = new Set(); const noStop = new Set(); const lineNodes = {};
     for (const p of data.stations) {
       const st = stateAt(p, iso);
       if (st === 'interrupted') {
         const it = interruptionAt(p, iso);
-        (it && it.type === 'geisterbahnhof' ? ghost : noStop).add(p.wikidata || p.name);
+        (it && it.type === 'geisterbahnhof' ? ghost : noStop).add(p.node);
       }
       if (st !== 'open') continue;
-      s.byLine[p.line] = (s.byLine[p.line] || 0) + 1;
-      seen.add(p.wikidata || p.name);
-      s.maxDepth = Math.max(s.maxDepth, -p.z);
+      (lineNodes[p.line] ||= new Set()).add(p.node);
+      s.recByLine[p.line] = (s.recByLine[p.line] || 0) + 1;
+      seen.add(p.node);
+      if (isUnderground(p)) s.maxDepth = Math.max(s.maxDepth, -p.z);
     }
+    for (const [l, set] of Object.entries(lineNodes)) s.byLine[l] = set.size;
     s.stations = seen.size; s.ghost = ghost.size; s.closedNoStop = noStop.size;
     for (const p of data.sections) if (sectionOpenAt(p, iso)) s.km += p.length_m / 1000;
     return s;
@@ -104,9 +121,11 @@ export default function App() {
 
   const deepest = useMemo(() => {
     if (!view) return [];
+    // nur unterirdische Einträge (Tunnel); weniger als 10 → weniger anzeigen. Ebenen eines Knotens bleiben
+    // getrennt, wenn sie verschiedene Linien/Tiefen haben (Linie wird in der Liste angezeigt).
     const seen = new Set();
-    return [...view.stations].sort((a, b) => a.z - b.z).filter((s) => {
-      const k = `${s.wikidata}|${s.z}`; if (seen.has(k)) return false; seen.add(k); return true;
+    return view.stations.filter(isUnderground).sort((a, b) => a.z - b.z).filter((s) => {
+      const k = `${s.node}|${s.line}|${s.z}`; if (seen.has(k)) return false; seen.add(k); return true;
     }).slice(0, 10);
   }, [view]);
 
@@ -114,7 +133,7 @@ export default function App() {
     if (!focusLine || !data) return null;
     const chain = lineChain(data.sections, focusLine, iso, hiddenLines);
     const stations = view.stations.filter((s) => s.line === focusLine);
-    return { stations, prof: chain && chain.length ? lineProfile(chain, stations) : null };
+    return { stations, hidden: hiddenLines.has(focusLine), prof: chain && chain.length ? lineProfile(chain, stations) : null };
   }, [focusLine, data, iso, hiddenLines, view]);
 
   const toggleLine = (id) => setHiddenLines((prev) => {
@@ -183,9 +202,27 @@ export default function App() {
             transfers={view.transfers.filter((p) => p.includes(selStation.id)).map((p) => view.byId[p[0] === selStation.id ? p[1] : p[0]])}
             onClose={() => setSel(null)} onLine={pickLine} onStation={(id) => pickStation(id)} />
         )}
+        {selMissing && (
+          <div className="card" role="region" aria-label="Ausgewählter Bahnhof">
+            <button type="button" className="close" onClick={() => setSel(null)} aria-label="Schließen">×</button>
+            <div className="ttl"><span className="badge" style={{ background: LINE_COLOR[selMissing.r.line] }}>{selMissing.r.line}</span><strong>{selMissing.name}</strong></div>
+            <p className="note">{selMissing.text}</p>
+            <div className="actions">
+              {selMissing.action && <button type="button" className="chip" onClick={selMissing.run}>{selMissing.action}</button>}
+              <button type="button" className="chip" onClick={() => setSel(null)}>Auswahl aufheben</button>
+            </div>
+          </div>
+        )}
         {focusLine && lineInfo && (
           <LineCard line={focusLine} color={LINE_COLOR[focusLine]} stations={lineInfo.stations} prof={lineInfo.prof} iso={iso}
+            hidden={lineInfo.hidden} year={year} onShow={() => toggleLine(focusLine)}
             onClose={() => setSel(null)} onStation={(id) => pickStation(id)} />
+        )}
+        {allHidden && (
+          <div className="empty" role="status">
+            <p><b>Keine Linien eingeblendet.</b></p>
+            <button type="button" className="chip" onClick={() => setHiddenLines(new Set())}>Alle anzeigen</button>
+          </div>
         )}
         <div className="views">
           <div className="seg">

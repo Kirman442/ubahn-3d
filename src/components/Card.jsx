@@ -21,7 +21,7 @@ export function StationCard({ s, iso, transfers, onClose, onLine, onStation }) {
       <div className="ttl"><Badge line={s.line} color={s.color} /><strong>{nameNow}</strong></div>
       {nameNow !== s.name && <p className="muted">heute: {s.name}</p>}
       {state === 'interrupted' && <p className="warn">Zu diesem Zeitpunkt ohne Halt</p>}
-      <div className="depth">{s.z < 0 ? n1(-s.z) : s.z > 0 ? `+${n1(s.z)}` : '0'}<small>{s.z < -0.5 ? ' m unter der Straße' : s.z > 0.5 ? ' m über der Straße' : ' m, Straßenniveau'}</small></div>
+      <div className="depth">{s.measured ? '' : '≈ '}{Math.abs(s.z) < 0.5 ? '0' : fmtM(s.z)}<small>{s.z < -0.5 ? ' m (unter Straßenniveau)' : s.z > 0.5 ? ' m (über Straßenniveau)' : ' m (Straßenniveau)'}</small></div>
       {s.z < 0 && <div className="bar" aria-hidden="true"><span style={{ width: `${pct}%` }} /></div>}
       {!s.measured && <p className="note">Tiefe geschätzt ({s.src}). Gemessene Werte gibt es bisher für 30 Bahnhöfe.</p>}
       <dl className="facts">
@@ -100,7 +100,7 @@ function Profile({ prof, color, iso, onStation }) {
   );
 }
 
-export function LineCard({ line, color, stations, prof, iso, onClose, onStation }) {
+export function LineCard({ line, color, stations, prof, iso, hidden, year, onShow, onClose, onStation }) {
   const under = stations.filter((s) => s.z < 0);
   const deepest = under.reduce((m, s) => (!m || s.z < m.z ? s : m), null);
   const avg = under.length ? under.reduce((a, s) => a - s.z, 0) / under.length : 0;
@@ -111,7 +111,9 @@ export function LineCard({ line, color, stations, prof, iso, onClose, onStation 
     <div className="card">
       <button type="button" className="close" onClick={onClose} aria-label="Schließen">×</button>
       <div className="ttl"><Badge line={line} color={color} /><strong>Linie {line}</strong></div>
-      {!stations.length ? <p className="muted">In diesem Jahr noch nicht in Betrieb.</p> : (
+      {hidden ? (
+        <div className="note-row"><p className="note">Linie {line} ist ausgeblendet.</p><button type="button" className="chip" onClick={onShow}>Linie {line} einblenden</button></div>
+      ) : !stations.length ? <p className="muted">Im Jahr {year} noch nicht in Betrieb.</p> : (
         <>
           <dl className="facts">
             <dt>Bahnhöfe</dt><dd>{stations.length}</dd>

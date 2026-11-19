@@ -1,6 +1,7 @@
 import { LINES, DEEP_LABEL } from '../lib/config';
 import { RAMP_CSS } from '../lib/colors';
 import { nameAt } from '../lib/time';
+import { depthText } from './Card';
 
 const Seg = ({ value, set, options }) => (
   <div className="seg" role="group">
@@ -25,12 +26,13 @@ export default function Panel(p) {
         {LINES.map((l) => {
           const off = hiddenLines.has(l.id);
           const n = stats.byLine[l.id] || 0;
+          const rec = stats.recByLine[l.id] || 0;
           return (
             <li key={l.id} className={focusLine === l.id ? 'focus' : ''}>
               <button type="button" className={off ? 'off' : ''} onClick={() => toggleLine(l.id)} aria-pressed={!off} title="ein/aus">
                 <span className="swatch" style={{ background: l.color }} /><b>{l.id}</b>
               </button>
-              <span className="muted">{n ? `${n} Bhf.` : '–'}</span>
+              <span className="muted" title={rec !== n ? `${n} Bahnhöfe, ${rec} Bahnsteig-/Ebenen-Einträge` : `${n} Bahnhöfe`}>{n ? `${n} Bhf.` : '–'}</span>
               <button type="button" className="linkbtn" disabled={!n || off} onClick={() => onLine(l.id)}>Profil</button>
             </li>
           );
@@ -75,14 +77,16 @@ export default function Panel(p) {
 
       {deepest.length > 0 && (
         <>
-          <h2>Tiefste Bahnhöfe</h2>
+          <h2>Tiefste Bahnhöfe (Tunnel)</h2>
           <ol className="deep">
             {deepest.map((s) => (
-              <li key={s.id}><button type="button" onClick={() => onStation(s.id)} style={{ '--c': s.color }}>
-                <i /><span>{nameAt(s, iso)}</span><span className="d">{(-s.z).toFixed(1).replace('.', ',')} m</span>
+              <li key={s.id}><button type="button" onClick={() => onStation(s.id)} style={{ '--c': s.color }}
+                aria-label={`${nameAt(s, iso)}, ${s.line}, ${depthText(s)}`}>
+                <span className="badge sm" style={{ background: s.color }}>{s.line}</span><span>{nameAt(s, iso)}</span><span className="d">{depthText(s)}</span>
               </button></li>
             ))}
           </ol>
+          <p className="hint small">Nur Tunnelbahnhöfe · Tiefe unter der Straße wie auf der Karte · ≈ geschätzt</p>
         </>
       )}
       <p className="hint">Gelände: DGM1 © Geoportal Berlin (dl-de/zero-2-0). Tiefen: Wikipedia (CC BY-SA 4.0), sonst Schätzung nach OSM. Linke Maus: drehen · rechte: verschieben · Rad: zoomen.</p>
