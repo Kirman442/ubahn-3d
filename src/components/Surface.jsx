@@ -57,6 +57,25 @@ function renderTexture(bbox, maxPx = 4096) {
   });
 }
 
+// Zwischenspeicher je Stadt: Stadtplan wird nur einmal gerendert; danach als JPEG im Speicher (≈1–2 MB statt ~50 MB Canvas)
+const CACHE = new Map();
+function cachedTexture(bbox) {
+  const key = `${CITY.tiles}|${[bbox.west, bbox.north, bbox.east, bbox.south].map((v) => v.toFixed(5)).join(',')}`;
+  if (CACHE.has(key)) return CACHE.get(key);
+  const p = renderTexture(bbox).then((r) => {
+    if (!r) { CACHE.delete(key); return null; }
+    r.canvas.toBlob((blob) => {
+      if (!blob) return;
+      const img = new Image();
+      img.onload = () => CACHE.set(key, Promise.resolve({ canvas: img, m0: r.m0, m1: r.m1 }));
+      img.src = URL.createObjectURL(blob);
+    }, 'image/jpeg', 0.92);
+    return r;
+  });
+  CACHE.set(key, p);
+  return p;
+}
+
 function planeGeometry(extent, m0, m1, n = 40) {
   const pos = []; const uv = []; const idx = [];
   for (let j = 0; j <= n; j++) {
@@ -88,7 +107,7 @@ export default function Surface({ extent, kind, opacity, depthBottom }) {
   useEffect(() => {
     if (kind !== 'map' || tex) return undefined;
     let alive = true;
-    renderTexture(bbox).then((r) => {
+    cachedTexture(bbox).then((r) => {
       if (!alive || !r) return;
       const t = new THREE.CanvasTexture(r.canvas);
       t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
