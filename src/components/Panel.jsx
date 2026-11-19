@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { LINES, DEEP_LABEL } from '../lib/config';
+import { DEEP_LABEL } from '../lib/config';
+import { CITY } from '../lib/city';
 import { RAMP_CSS } from '../lib/colors';
 import { nameAt } from '../lib/time';
 import { depthText, statusShort, isApprox } from '../lib/depth';
@@ -21,7 +22,7 @@ function StationSearch({ stations, iso, year, onStation }) {
   const res = useMemo(() => {
     if (t.length < 2) return [];
     const n = norm(t); const seen = new Set();
-    return stations.filter((s) => norm(nameAt(s, iso)).includes(n) || norm(s.name).includes(n))
+    return stations.filter((s) => !s.alt && (norm(nameAt(s, iso)).includes(n) || norm(s.name).includes(n)))
       .sort((a, b) => nameAt(a, iso).localeCompare(nameAt(b, iso), 'de') || a.line.localeCompare(b.line))
       .filter((s) => { const k = `${s.node}|${s.line}`; if (seen.has(k)) return false; seen.add(k); return true; })
       .slice(0, 12);
@@ -29,7 +30,7 @@ function StationSearch({ stations, iso, year, onStation }) {
   return (
     <div className="search" role="search">
       <h2 id="h-search"><label htmlFor="st-q">Bahnhof suchen</label></h2>
-      <input id="st-q" type="search" autoComplete="off" placeholder="Name, z. B. Hermannplatz" value={q} onChange={(e) => setQ(e.target.value)}
+      <input id="st-q" type="search" autoComplete="off" placeholder={`Name, ${CITY.search}`} value={q} onChange={(e) => setQ(e.target.value)}
         aria-describedby="st-q-n" />
       <p id="st-q-n" className="sr" aria-live="polite">{t.length >= 2 ? `${res.length}${res.length === 12 ? ' oder mehr' : ''} Treffer` : ''}</p>
       {res.length > 0 && (
@@ -66,7 +67,7 @@ export default function Panel(p) {
 
       <h2 id="h-lines">Linien {hiddenLines.size > 0 && <button type="button" className="linkbtn" onClick={showAll}>Alle anzeigen</button>}</h2>
       <ul className="lines" aria-labelledby="h-lines">
-        {LINES.map((l) => {
+        {CITY.lines.map((l) => {
           const off = hiddenLines.has(l.id);
           const n = stats.byLine[l.id] || 0;
           const rec = stats.recByLine[l.id] || 0;
@@ -82,7 +83,7 @@ export default function Panel(p) {
           );
         })}
       </ul>
-      {stats.ghost > 0 && (
+      {stats.ghost > 0 && CITY.id === 'berlin' && (
         <div className="ghost-note"><span className="ring" aria-hidden="true" />
           <p><b>{stats.ghost} Geisterbahnhöfe</b> – Züge aus West-Berlin fuhren unter Ost-Berlin ohne Halt durch (1961–1990).</p></div>
       )}
@@ -120,7 +121,7 @@ export default function Panel(p) {
       <h2 id="h-style">Stil der Szene</h2>
       <Seg value={opts.style} labelledby="h-style" set={(v) => setOpt('style', v)} options={[['neu', 'Erdreich'], ['klassisch', 'Klassisch']]} />
       <h2 id="h-surf">Oberfläche {opts.surface !== 'off' && <output>{Math.round(opts.surfOp * 100)} %</output>}</h2>
-      <Seg value={opts.surface} set={(v) => setOpt('surface', v)} labelledby="h-surf" options={[['map', 'Stadtplan'], ['plain', 'Fläche'], ['off', 'aus']]} />
+      <Seg value={opts.surface === 'map' && !CITY.tiles ? 'plain' : opts.surface} set={(v) => setOpt('surface', v)} labelledby="h-surf" options={CITY.tiles ? [['map', 'Stadtplan'], ['plain', 'Fläche'], ['off', 'aus']] : [['plain', 'Fläche'], ['off', 'aus']]} />
       {opts.surface !== 'off' && (
         <input className="range" type="range" min={0.1} max={1} step={0.05} value={opts.surfOp} onChange={(e) => setOpt('surfOp', Number(e.target.value))} aria-label="Deckkraft der Oberfläche" />
       )}
@@ -151,7 +152,7 @@ export default function Panel(p) {
       <p className="hint small">Schematisch: senkrechte Linien zeigen keine echten Zugänge; Umstiege verbinden Bahnhöfe verschiedener Linien unter 300 m Abstand, nicht vermessene Gänge.</p>
       </details>
 
-      <p className="hint">Gelände: DGM1 © Geoportal Berlin (dl-de/zero-2-0). Tiefen: Quellenangaben aus Wikipedia (CC BY-SA 4.0) für einzelne Bahnhöfe, sonst Modellschätzung nach OSM-Bahnsteigebene oder Bauart.</p>
+      <p className="hint">{CITY.attribution}</p>
     </aside>
   );
 }

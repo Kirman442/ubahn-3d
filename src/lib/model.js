@@ -1,14 +1,15 @@
 import { toXZ } from './geo';
-import { LINE_COLOR } from './config';
+import { LINE_COLOR, CITY } from './city';
 import { sectionOpenAt } from './time';
 
-// Опорная высота для режима «абсолютно» (м ü. NHN): примерно средний уровень улиц Берлина
-export const H0 = 35;
+// Опорная высота для режима «абсолютно» (м ü. NHN): примерно средний уровень улиц der Stadt (lib/city.js)
+export let H0 = CITY.h0;
 export const DEPTH_MAX = 22;   // для шкалы цвета «по глубине»
 
 // network3d.json: станции z (м относительно поверхности), ground (DGM1, м NHN);
 // участки xyz [lon, lat, z относительно g], g — рельеф DGM1 в каждой точке (модель v4)
 export function prepare(net, geo) {
+  H0 = CITY.h0;
   const props = Object.fromEntries(geo.features.map((f) => [f.properties.id, f.properties]));
   const stations = net.stations.map((s) => {
     const [x, zz] = toXZ(s.lon, s.lat);
@@ -37,7 +38,9 @@ export function prepare(net, geo) {
       if (Math.hypot(A.x - B.x, A.zz - B.zz) < 300) transfers.push([A.id, B.id]);
     }
   }
-  return { stations, sections, transfers };
+  // Baustellen (nur Darstellung, gestrichelt)
+  const construction = (net.construction || []).map((c) => ({ ...c, pts: c.xyz.map(([lon, lat, z], k) => { const [x, zz] = toXZ(lon, lat); return { x, zz, z, g: c.g[k] }; }) }));
+  return { stations, sections, transfers, construction };
 }
 
 // Станционный узел (Bahnhof) ≠ запись линии/уровня. Записи объединяются в один узел, если у них
@@ -72,7 +75,7 @@ export const surfaceY = (mode, exag) => (mode === 'abs' ? (ground) => (ground - 
 
 // Линия на дату: цепочка открытых участков от одного конца до другого (самая длинная)
 export function lineChain(sections, line, iso, hidden) {
-  const segs = sections.filter((s) => s.line === line && sectionOpenAt(s, iso) && !hidden?.has(line));
+  const segs = sections.filter((s) => s.line === line && sectionOpenAt(s, iso) && s.dir !== 'B' && !hidden?.has(line));
   if (!segs.length) return null;
   const adj = new Map();
   const add = (n, e) => { if (!adj.has(n)) adj.set(n, []); adj.get(n).push(e); };

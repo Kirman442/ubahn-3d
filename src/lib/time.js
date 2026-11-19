@@ -27,6 +27,9 @@ export const stateAt = (station, iso) => {
   if (!station.opened || normDate(station.opened) > iso) return 'hidden';
   if (station.closed && normDate(station.closed) <= iso) return 'hidden';
   if (station.map_from && normDate(station.map_from) > iso) return 'hidden';
+  // Vorgänger Straßenbahn (Nürnberg: Muggenhof, Stadtgrenze 1970–1981) → eigenes Zeichen
+  const pre = station.predecessor;
+  if (pre && pre.type === 'Straßenbahn' && normDate(pre.opened) <= iso && (!pre.closed || iso < normDate(pre.closed))) return 'tram';
   for (const it of station.interruptions || []) {
     const start = normDate(it.start);
     const end = it.end && it.end.length === 4 ? `${it.end}-12-31` : normDate(it.end) || '9999';
@@ -40,6 +43,8 @@ export const INTERRUPTION_LABEL = {
   stillgelegt: 'stillgelegt',
   'M-Bahn': 'M-Bahn-Betrieb',
   Kleinprofil: 'Kleinprofil',
+  Umbau: 'Umbau',
+  Sanierung: 'Sanierung',
 };
 
 export const sectionOpenAt = (p, iso) => normDate(p.opened) <= iso && !(p.closed && normDate(p.closed) <= iso);

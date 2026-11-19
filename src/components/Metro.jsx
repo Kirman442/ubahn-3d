@@ -10,6 +10,8 @@ const ring = new THREE.TorusGeometry(STATION_RADIUS * 1.35, STATION_RADIUS * 0.1
 ring.rotateX(Math.PI / 2);
 const selRing = new THREE.TorusGeometry(STATION_RADIUS * 1.9, STATION_RADIUS * 0.14, 8, 48);
 selRing.rotateX(Math.PI / 2);
+// Vorgänger-Straßenbahnhalt (Nürnberg 1970–1981): Würfel statt Kugel
+const tramBox = new THREE.BoxGeometry(STATION_RADIUS * 1.5, STATION_RADIUS * 1.5, STATION_RADIUS * 1.5);
 const xraySphere = new THREE.SphereGeometry(STATION_RADIUS * 0.8, 16, 10);
 
 const useDispose = (objs) => useEffect(() => () => [].concat(objs).forEach((o) => o?.dispose?.()), [objs]);
@@ -144,7 +146,7 @@ export function Stations({ stations, sections, Y, colorMode, focusLine, selected
         return (
           <group key={s.id} position={[s.x, Y(s.z, s.ground), s.zz]}>
             <mesh
-              geometry={neu ? sphereNeu : sphere}
+              geometry={s.state === 'tram' ? tramBox : neu ? sphereNeu : sphere}
               material={mats(s, faded)}
               userData={{ id: s.id }}
               onPointerMove={(e) => { e.stopPropagation(); onHover({ kind: 'station', id: s.id, x: e.clientX, y: e.clientY }); }}
@@ -220,4 +222,20 @@ export function SurfaceTraces({ sections, visible, SY }) {
   }, [sections, visible, SY]);
   useDispose(geo);
   return <lineSegments geometry={geo}><lineBasicMaterial color="#8C7A5E" transparent opacity={0.7} /></lineSegments>;
+}
+
+// ---------- Baustelle (gestrichelt, ohne Höhenangaben der Quelle) ----------
+export function Construction({ items, Y, color }) {
+  const geo = useMemo(() => {
+    const a = [];
+    items.forEach((c) => { for (let k = 1; k < c.pts.length; k++) { const p = c.pts[k - 1]; const q = c.pts[k]; a.push(p.x, Y(p.z, p.g), p.zz, q.x, Y(q.z, q.g), q.zz); } });
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(a, 3));
+    return g;
+  }, [items, Y]);
+  useDispose(geo);
+  return (
+    <lineSegments geometry={geo} onUpdate={(l) => l.computeLineDistances()} raycast={() => null}>
+      <lineDashedMaterial color={color} dashSize={60} gapSize={45} />
+    </lineSegments>
+  );
 }

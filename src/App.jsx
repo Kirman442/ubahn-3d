@@ -3,13 +3,14 @@ import Scene from './components/Scene';
 import Panel from './components/Panel';
 import TimeControl from './components/TimeControl';
 import { StationCard, LineCard } from './components/Card';
-import { END_YEAR, DEFAULT_EXAG, DEEP_LABEL, LINE_COLOR, LINES } from './lib/config';
+import { END_YEAR, DEFAULT_EXAG, DEEP_LABEL } from './lib/config';
+import { CITIES, CITY, LINE_COLOR, setCity as applyCity, cityFromHash } from './lib/city';
 import ModelInfo from './components/ModelInfo';
 import { prepare, makeY, surfaceY, lineChain, lineProfile, isUnderground } from './lib/model';
 import { depthText, statusShort } from './lib/depth';
 import { isoForYear, stateAt, sectionOpenAt, interruptionAt, nameAt, formatDate, normDate, yearOf } from './lib/time';
 
-const load = (name) => fetch(`/data/${name}`, { cache: 'no-cache' }).then((r) => {
+const load = (name) => fetch(`/data/${CITY.data}${name}`, { cache: 'no-cache' }).then((r) => {
   if (!r.ok) throw new Error(`${name}: HTTP ${r.status}`);
   return r.json();
 });
@@ -19,13 +20,28 @@ const START_THEME = saved('ubahn3d.theme', typeof window !== 'undefined' && wind
 const DEFAULT_OPTS = { theme: START_THEME, style: saved('ubahn3d.style', 'neu'), exag: DEFAULT_EXAG, surface: 'map', surfOp: 0.55, mode: 'rel', color: 'line', labels: 'deep', shafts: true, grid: true, levels: true, transfers: true };
 const cssVar = (n, fb) => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || fb;
 
+// Stadtwahl: Stadt steht in der Adresse (#nuernberg). Beim Wechsel wird die Stadtansicht neu aufgebaut
+// (Auswahl, Kamera, Jahr zurückgesetzt); Darstellungs-Einstellungen bleiben.
 export default function App() {
+  const [city, setCityId] = useState(cityFromHash);
+  const [opts, setOpts] = useState(DEFAULT_OPTS);
+  applyCity(city);
+  useEffect(() => {
+    const on = () => setCityId(cityFromHash());
+    window.addEventListener('hashchange', on);
+    return () => window.removeEventListener('hashchange', on);
+  }, []);
+  const choose = (id) => { if (id === city) return; window.location.hash = id === 'berlin' ? '' : id; setCityId(id); };
+  return <CityApp key={city} city={city} choose={choose} opts={opts} setOpts={setOpts} />;
+}
+
+function CityApp({ city, choose, opts, setOpts }) {
+  const LINES = CITY.lines;
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [year, setYear] = useState(END_YEAR);
   const [playing, setPlaying] = useState(false);
   const [hiddenLines, setHiddenLines] = useState(() => new Set());
-  const [opts, setOpts] = useState(DEFAULT_OPTS);
   const [sel, setSel] = useState(null);        // {kind:'station', id} | {kind:'line', line}
   const [focusLine, setFocusLine] = useState(null);
   const [lineNames, setLineNames] = useState(true); // Namen ein/aus in der Linienansicht
@@ -62,6 +78,8 @@ export default function App() {
   const iso = isoForYear(year);
   const exag = useDeferredValue(opts.exag);
   const Y = useMemo(() => makeY(opts.mode, exag), [opts.mode, exag]);
+  // ohne Stadtplan-Kacheln (bisher nur Berlin) → Fläche statt Stadtplan
+  const surfaceKind = opts.surface === 'map' && !CITY.tiles ? 'plain' : opts.surface;
   const SY = useMemo(() => surfaceY(opts.mode, exag), [opts.mode, exag]);
   const bg = useMemo(() => cssVar('--scene', '#E3E7EB'), []);
 
@@ -142,7 +160,7 @@ export default function App() {
     }
     for (const [l, set] of Object.entries(lineNodes)) s.byLine[l] = set.size;
     s.stations = seen.size; s.ghost = ghost.size; s.closedNoStop = noStop.size;
-    for (const p of data.sections) if (sectionOpenAt(p, iso)) s.km += p.length_m / 1000;
+    for (const p of data.sections) if (p.dir !== 'B' && sectionOpenAt(p, iso)) s.km += p.length_m / 1000;
     return s;
   }, [data, iso]);
 
@@ -230,7 +248,16 @@ export default function App() {
   return (
     <div className="app">
       <header>
-        <h1>Berliner U-Bahn in der Tiefe <span className="yr">{year}</span></h1>
+        <h1>U-Bahn in der Tiefe <span className="yr">{year}</span></h1>
+        <div className="city-seg" role="group" aria-label="Stadt">
+          {CITIES.map((c) => (
+            <button key={c.id} type="button" aria-pressed={c.id === city} className={c.id === city ? 'on' : ''} disabled={!c.ready}
+              title={c.ready ? undefined : 'in Vorbereitung'} onClick={() => choose(c.id)}>{c.name}</button>
+          ))}
+        </div>
+        <label className="city-sel"><span className="sr">Stadt</span>
+          <select value={city} onChange={(e) => choose(e.target.value)}>{CITIES.map((c) => <option key={c.id} value={c.id} disabled={!c.ready}>{c.name}{c.ready ? '' : ' (bald)'}</option>)}</select>
+        </label>
         <button type="button" className="info-btn" aria-label="Über das Modell" aria-expanded={info} onClick={() => setInfo((v) => !v)}>i</button>
         <button type="button" className="theme-btn" onClick={() => setOpt('theme', opts.theme === 'dunkel' ? 'hell' : 'dunkel')}
           aria-label={opts.theme === 'dunkel' ? 'Helles Design' : 'Dunkles Design'} title={opts.theme === 'dunkel' ? 'Hell' : 'Dunkel'}>{opts.theme === 'dunkel' ? '☀' : '☾'}</button>
@@ -254,7 +281,7 @@ export default function App() {
           </div>
         )}
         {data && view && extent && (
-          <Scene ref={scene} data={data} view={view} Y={Y} SY={SY} opts={{ ...opts, exag }} extent={extent} bg={bg}
+          <Scene ref={scene} data={data} view={view} Y={Y} SY={SY} opts={{ ...opts, exag, surface: surfaceKind }} extent={extent} bg={bg}
             focusLine={focusLine} selected={selStation} hoverId={hoverStation?.id} labelItems={labelItems}
             onHover={setHover} onUserCamera={() => setPreset(null)}
             onPick={(p) => { if (!p) stepBack(); else if (p.kind === 'station') pickStation(p.id, false); else pickLine(p.line); }} />

@@ -27,6 +27,8 @@ export function StationCard({ s, iso, ctx, transfers, focusReq, onClose, onBack,
       <h2 className="ttl" id="card-ttl" tabIndex={-1} ref={head}><Badge line={s.line} color={s.color} /><span>{nameNow}</span><span className="sr"> – Bahnhof, Linie {s.line}</span></h2>
       {nameNow !== s.name && <p className="muted">heute: {s.name}</p>}
       {state === 'interrupted' && <p className="warn">Zu diesem Zeitpunkt ohne Halt</p>}
+      {state === 'tram' && <p className="warn">Zu diesem Zeitpunkt Straßenbahnhalt ({formatDate(s.predecessor.opened)}–{formatDate(s.predecessor.closed)}), U-Bahn ab {formatDate(s.opened_ubahn)}</p>}
+      {s.ebene && <p className="muted">Richtungsbahnhof: dieser Eintrag = {s.ebene} ({s.z <= -15 ? 'untere' : 'obere'} Ebene)</p>}
       <div className="depth">{depthNumber(s)}<small> m {where(s.z)}</small></div>
       <p className="status"><span className={`tag ${s.kind}`}>{statusShort(s)}</span></p>
       {s.z < 0 && <div className="bar" aria-hidden="true"><span style={{ width: `${pct}%` }} /></div>}

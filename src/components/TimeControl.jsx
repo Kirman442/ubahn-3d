@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import { START_YEAR, END_YEAR } from '../lib/config';
+import { END_YEAR } from '../lib/config';
+import { CITY } from '../lib/city';
 
-const decades = [];
-for (let y = Math.ceil(START_YEAR / 20) * 20; y <= END_YEAR; y += 20) decades.push(y);
 const STEP_MS = 250; // Abspielen: 4 Jahre pro Sekunde
 
 export default function TimeControl({ year, setYear, playing, setPlaying, firstYear }) {
+  const START_YEAR = CITY.startYear;
+  const decades = [];
+  const stepD = END_YEAR - START_YEAR > 80 ? 20 : 10;
+  for (let y = Math.ceil(START_YEAR / stepD) * stepD; y <= END_YEAR; y += stepD) decades.push(y);
   const timer = useRef(null);
   const [draft, setDraft] = useState(String(year));
   useEffect(() => { setDraft(String(year)); }, [year]);

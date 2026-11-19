@@ -5,7 +5,8 @@ import { fromXZ } from '../lib/geo';
 
 // Схема города на поверхности (как «схема» у 3d-metro): только вода, зелень и главные улицы
 // из berlin.pmtiles, без подписей. Рендерится один раз невидимой картой MapLibre в текстуру.
-const TILES = `${window.location.origin}/tiles/berlin.pmtiles`;
+import { CITY } from '../lib/city';
+const TILES = `${window.location.origin}/tiles/${CITY.tiles || 'berlin.pmtiles'}`;
 const GREEN = ['park', 'forest', 'wood', 'grass', 'cemetery', 'garden', 'nature_reserve', 'golf_course', 'allotments', 'meadow', 'recreation_ground', 'playground'];
 const STYLE = {
   version: 8,

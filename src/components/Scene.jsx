@@ -2,12 +2,13 @@ import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'rea
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
-import { Tubes, Stations, Shafts, Transfers, SurfaceTraces } from './Metro';
+import { Tubes, Stations, Shafts, Transfers, SurfaceTraces, Construction } from './Metro';
 import Guides from './Guides';
 import Surface from './Surface';
 import Labels from './Labels';
 import Soil from './Soil';
-import { isUnderground } from '../lib/model';
+import { isUnderground, H0 } from '../lib/model';
+import { LINE_COLOR } from '../lib/city';
 
 const TAN = Math.tan(THREE.MathUtils.degToRad(42 / 2));
 const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -115,6 +116,9 @@ function CameraRig({ api, Y, SY, exag, selected }) {
   return null;
 }
 
+const ISO_EL = (60 * Math.PI) / 180; // Neigung der Startansicht
+const ISO_D = 540;                     // Abstand in Einheiten von k (k = Netzausdehnung / 470)
+
 const Scene = forwardRef(function Scene(props, ref) {
   const { data, view, Y, SY, opts, focusLine, selected, hoverId, labelItems, onHover, onPick, onUserCamera, extent, bg } = props;
   const overlay = useRef();
@@ -126,11 +130,12 @@ const Scene = forwardRef(function Scene(props, ref) {
     const cx = (x0 + x1) / 2; const cz = (z0 + z1) / 2; const k = Math.max(x1 - x0, z1 - z0) / 470;
     const ty = -8 * opts.exag;
     return {
-      iso: opts.style === 'neu' ? [[cx - 60 * k, ty * 0.9, cz + 150 * k], [cx + 10 * k, ty * 1.5, cz - 20 * k]] : [[cx - 120 * k, 120 * k, cz + 200 * k], [cx, ty, cz + 10 * k]],
+      // Startansicht für alle Städte und Stile: von Süden, etwa 60° über dem Horizont, Norden oben
+      iso: [[cx, ty * 0.5 + ISO_D * k * Math.sin(ISO_EL), cz + ISO_D * k * Math.cos(ISO_EL)], [cx, ty * 0.5, cz]],
       top: [[cx, 560 * k, cz + 0.1], [cx, 0, cz]],
       below: [[cx - 160 * k, -300 * k, cz + 230 * k], [cx, ty, cz]],
     };
-  }, [extent, opts.exag, opts.style]);
+  }, [extent, opts.exag]);
 
   useImperativeHandle(ref, () => ({
     // Seite: Rahmung der fokussierten Linie bzw. aller sichtbaren Bahnhöfe
@@ -160,10 +165,11 @@ const Scene = forwardRef(function Scene(props, ref) {
         <hemisphereLight args={['#ffffff', '#445060', dark ? 0.9 : 1.6]} />
         <directionalLight position={[-20000, 40000, 15000]} intensity={1.4} />
         <directionalLight position={[15000, -30000, -10000]} intensity={0.5} />
-        <Surface extent={extent} kind={opts.surface} opacity={opts.surfOp} depthBottom={(opts.mode === 'abs' ? 15 - 35 : -25) * opts.exag} />
+        <Surface extent={extent} kind={opts.surface} opacity={opts.surfOp} depthBottom={(opts.mode === 'abs' ? 15 - H0 : -25) * opts.exag} />
         <Guides extent={extent} mode={opts.mode} exag={opts.exag} showGrid={opts.grid} showLevels={opts.levels} />
         {opts.mode === 'abs' && opts.grid && <SurfaceTraces sections={data.sections} visible={view.sectionVisible} SY={SY} />}
         {opts.shafts && <Shafts stations={view.stations} Y={Y} SY={SY} />}
+        {data.construction?.length > 0 && <Construction items={data.construction} Y={Y} color={LINE_COLOR[data.construction[0].line]} />}
         <Tubes neu={neu} glow={dark} sections={data.sections} visible={view.sectionVisible} Y={Y} colorMode={opts.color} focusLine={focusLine} onHover={onHover} onPick={onPick} />
         <Stations neu={neu} sections={data.sections} stations={view.stations} Y={Y} colorMode={opts.color} focusLine={focusLine} selectedId={selected?.id} hoverId={hoverId} onHover={onHover} onPick={onPick} />
         {opts.transfers && <Transfers pairs={view.transfers} byId={view.byId} Y={Y} />}
