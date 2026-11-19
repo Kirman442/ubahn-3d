@@ -11,7 +11,16 @@ export const CITIES = [
     attribution: 'Gelände: DGM1 © Geoportal Berlin (dl-de/zero-2-0) · Tiefen: Wikipedia (CC BY-SA 4.0) · Karte: OpenStreetMap-Mitwirkende',
   },
   { id: 'hamburg', name: 'Hamburg', ready: false },
-  { id: 'muenchen', name: 'München', ready: false },
+  {
+    id: 'muenchen', name: 'München', ready: true, data: 'muenchen/', tiles: null,
+    origin: { lon: 11.5755, lat: 48.1374 }, h0: 520, startYear: 1971,
+    // MVG-Farben; U7 und U8 sind zweifarbig (Liniensignet diagonal geteilt): color + color2
+    lines: [{ id: 'U1', color: '#52822F' }, { id: 'U2', color: '#C20831' }, { id: 'U3', color: '#EC6725' }, { id: 'U4', color: '#00A984' },
+      { id: 'U5', color: '#BC7A00' }, { id: 'U6', color: '#0065AE' }, { id: 'U7', color: '#52822F', color2: '#C20831' }, { id: 'U8', color: '#C20831', color2: '#EC6725' }],
+    dgm: 'DGM1 Bayern', search: 'z. B. Marienplatz',
+    note: 'Gemessen sind nur 18 Bahnhofstiefen; die übrigen sind aus Bahnsteigebene (OSM/Wikipedia) geschätzt, die Trasse dazwischen aus Gelände und Bauregeln. Linien, die sich einen Tunnel teilen (Stammstrecken), sind nebeneinander gezeichnet – nur zur Lesbarkeit. Liniennummern sind die heutigen.',
+    attribution: 'Gelände: DGM1 © Bayerische Vermessungsverwaltung, geodaten.bayern.de (CC BY 4.0) · Geschichte und Tiefen: Wikipedia (CC BY-SA 4.0), Wikidata (CC0) · Lage: © OpenStreetMap-Mitwirkende (ODbL)',
+  },
   {
     id: 'nuernberg', name: 'Nürnberg', ready: true, data: 'nuernberg/', tiles: null,
     origin: { lon: 11.0767, lat: 49.4521 }, h0: 310, startYear: 1970,
@@ -24,11 +33,15 @@ export const CITIES = [
 
 export let CITY = CITIES[0];
 export let LINE_COLOR = {};
+export let LINE_COLOR2 = {};
+// CSS-Hintergrund für Liniensignet/Farbfeld: zweifarbige Linien diagonal geteilt wie bei der MVG
+export const lineBg = (id, color) => (LINE_COLOR2[id] ? `linear-gradient(135deg, ${LINE_COLOR[id]} 50%, ${LINE_COLOR2[id]} 50%)` : color || LINE_COLOR[id]);
 export function setCity(id) {
   const c = CITIES.find((x) => x.id === id && x.ready) || CITIES[0];
   if (c === CITY && Object.keys(LINE_COLOR).length) return c;
   CITY = c;
   LINE_COLOR = Object.fromEntries(c.lines.map((l) => [l.id, l.color]));
+  LINE_COLOR2 = Object.fromEntries(c.lines.filter((l) => l.color2).map((l) => [l.id, l.color2]));
   setOrigin(c.origin);
   return c;
 }

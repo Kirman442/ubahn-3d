@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { DEEP_LABEL } from '../lib/config';
-import { CITY } from '../lib/city';
+import { CITY, lineBg } from '../lib/city';
 import { RAMP_CSS } from '../lib/colors';
 import { nameAt } from '../lib/time';
 import { depthText, statusShort, isApprox } from '../lib/depth';
@@ -37,7 +37,7 @@ function StationSearch({ stations, iso, year, onStation }) {
         <ul className="results" aria-label="Suchergebnisse">
           {res.map((s) => (
             <li key={s.id}><button type="button" onClick={() => onStation(s.id)} aria-label={`${nameAt(s, iso)}, ${s.line}, ${depthText(s)}`}>
-              <span className="badge sm" style={{ background: s.color }}>{s.line}</span><span>{nameAt(s, iso)}</span><span className="d">{depthText(s)}</span>
+              <span className="badge sm" style={{ background: lineBg(s.line, s.color) }}>{s.line}</span><span>{nameAt(s, iso)}</span><span className="d">{depthText(s)}</span>
             </button></li>
           ))}
         </ul>
@@ -75,7 +75,7 @@ export default function Panel(p) {
             <li key={l.id} className={focusLine === l.id ? 'focus' : ''}>
               <button type="button" className={`tog${off ? ' off' : ''}`} onClick={() => toggleLine(l.id)} aria-pressed={!off}
                 aria-label={`Linie ${l.id} anzeigen`} title={off ? 'ausgeblendet – einblenden' : 'eingeblendet – ausblenden'}>
-                <span className="box" aria-hidden="true">{off ? '' : '✓'}</span><span className="swatch" style={{ background: l.color }} /><b>{l.id}</b>
+                <span className="box" aria-hidden="true">{off ? '' : '✓'}</span><span className="swatch" style={{ background: lineBg(l.id, l.color) }} /><b>{l.id}</b>
               </button>
               <span className="muted" title={rec !== n ? `${n} Bahnhöfe, ${rec} Bahnsteig-/Ebenen-Einträge` : `${n} Bahnhöfe`}>{n ? `${n} Bhf.` : '–'}</span>
               <button type="button" className="linkbtn" disabled={!n || off} onClick={() => onLine(l.id)} aria-label={`Profil ${l.id}`}>Profil</button>
@@ -99,7 +99,7 @@ export default function Panel(p) {
             {deepest.map((s) => (
               <li key={s.id}><button type="button" onClick={() => onStation(s.id)} style={{ '--c': s.color }}
                 aria-label={`${nameAt(s, iso)}, ${s.line}, ${depthText(s)}`}>
-                <span className="badge sm" style={{ background: s.color }}>{s.line}</span><span>{nameAt(s, iso)}</span><span className="d">{depthText(s)}</span>
+                <span className="badge sm" style={{ background: lineBg(s.line, s.color) }}>{s.line}</span><span>{nameAt(s, iso)}</span><span className="d">{depthText(s)}</span>
               </button></li>
             ))}
           </ol>

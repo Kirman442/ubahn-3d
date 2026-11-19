@@ -4,7 +4,7 @@ import Panel from './components/Panel';
 import TimeControl from './components/TimeControl';
 import { StationCard, LineCard } from './components/Card';
 import { END_YEAR, DEFAULT_EXAG, DEEP_LABEL } from './lib/config';
-import { CITIES, CITY, LINE_COLOR, setCity as applyCity, cityFromHash } from './lib/city';
+import { CITIES, CITY, LINE_COLOR, lineBg, setCity as applyCity, cityFromHash } from './lib/city';
 import ModelInfo from './components/ModelInfo';
 import { prepare, makeY, surfaceY, lineChain, lineProfile, isUnderground } from './lib/model';
 import { depthText, statusShort } from './lib/depth';
@@ -302,7 +302,7 @@ function CityApp({ city, choose, opts, setOpts }) {
         {selMissing && (
           <section className="card" aria-label="Ausgewählter Bahnhof">
             <button type="button" className="close" onClick={stepBack} aria-label="Schließen">×</button>
-            <div className="ttl"><span className="badge" style={{ background: LINE_COLOR[selMissing.r.line] }}>{selMissing.r.line}</span><strong>{selMissing.name}</strong></div>
+            <div className="ttl"><span className="badge" style={{ background: lineBg(selMissing.r.line) }}>{selMissing.r.line}</span><strong>{selMissing.name}</strong></div>
             <p className="note">{selMissing.text}</p>
             <div className="actions">
               {selMissing.action && <button type="button" className="chip" onClick={selMissing.run}>{selMissing.action}</button>}

@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { TUBE_RADIUS, STATION_RADIUS } from '../lib/config';
 import { depthColor } from '../lib/colors';
+import { LINE_COLOR2 } from '../lib/city';
 
 const sphere = new THREE.SphereGeometry(STATION_RADIUS, 20, 14);
 // Stil «neu»: größere Kugel passend zu den dickeren Röhren
@@ -40,7 +41,7 @@ function smoothPath(pts, rel, step, passes) {
   return [P, R];
 }
 
-function tubeGeometry(sec, Y, colorDepth, radius) {
+function tubeGeometry(sec, Y, colorDepth, radius, two) {
   const raw = [];
   const rawRel = [];
   for (let k = 0; k < sec.pts.length; k++) {
@@ -71,20 +72,30 @@ function tubeGeometry(sec, Y, colorDepth, radius) {
       for (let r = 0; r <= radial; r++) cols.push(c.r, c.g, c.b);
     }
     geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
+  } else if (two) {
+    // zweifarbige Linie: Röhre längs halbiert (eine Hälfte je Farbe)
+    const cols = [];
+    for (let i = 0; i <= segs; i++) for (let r = 0; r <= radial; r++) { const c = r < radial / 2 ? two[0] : two[1]; cols.push(c.r, c.g, c.b); }
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
   }
   return geo;
 }
 
 export function Tubes({ sections, visible, Y, colorMode, focusLine, onHover, onPick, neu, glow }) {
-  const geoms = useMemo(() => sections.map((s) => tubeGeometry(s, Y, colorMode === 'depth', neu ? TUBE_RADIUS * 1.7 : TUBE_RADIUS)), [sections, Y, colorMode, neu]);
+  const geoms = useMemo(() => sections.map((s) => {
+    const c2 = LINE_COLOR2[s.line];
+    const two = c2 ? [new THREE.Color(s.color), new THREE.Color(c2)] : null;
+    return tubeGeometry(s, Y, colorMode === 'depth', neu ? TUBE_RADIUS * 1.7 : TUBE_RADIUS, two);
+  }), [sections, Y, colorMode, neu]);
   useDispose(geoms);
   const mats = useMemo(() => {
     const m = {};
     const make = (key, opts) => { m[key] = new THREE.MeshStandardMaterial({ roughness: 0.55, metalness: 0.05, ...opts }); };
     sections.forEach((s) => {
       const c = new THREE.Color(s.color);
-      make(`${s.line}`, colorMode === 'depth' ? { vertexColors: true } : { color: c, emissive: c, emissiveIntensity: glow ? 0.5 : 0.12 });
-      make(`${s.line}-f`, { ...(colorMode === 'depth' ? { vertexColors: true } : { color: c }), transparent: true, opacity: 0.12, depthWrite: false });
+      const two = colorMode !== 'depth' && LINE_COLOR2[s.line];
+      make(`${s.line}`, colorMode === 'depth' ? { vertexColors: true } : two ? { vertexColors: true, emissive: '#ffffff', emissiveIntensity: glow ? 0.12 : 0.03 } : { color: c, emissive: c, emissiveIntensity: glow ? 0.5 : 0.12 });
+      make(`${s.line}-f`, { ...(colorMode === 'depth' || two ? { vertexColors: true } : { color: c }), transparent: true, opacity: 0.12, depthWrite: false });
     });
     return m;
   }, [sections, colorMode, glow]);

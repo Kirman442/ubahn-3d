@@ -10,7 +10,8 @@ import { formatDate, nameAt, stateAt, yearOf, INTERRUPTION_LABEL } from '../lib/
 import { depthText, depthNumber, statusShort, provenanceRows, provenanceNote, isApprox } from '../lib/depth';
 import { isUnderground } from '../lib/model';
 
-const Badge = ({ line, color }) => <span className="badge" style={{ background: color }}>{line}</span>;
+import { lineBg } from '../lib/city';
+const Badge = ({ line, color }) => <span className="badge" style={{ background: lineBg(line, color) }}>{line}</span>;
 const n1 = (v) => v.toFixed(1).replace('.', ',');
 const n0 = (v) => Math.round(v).toString();
 const LAGE = { Tunnel: 'Tunnel', Viadukt: 'Hochbahn (Viadukt)', Damm: 'Damm', Einschnitt: 'Einschnitt', Plan: 'ebenerdig' };
