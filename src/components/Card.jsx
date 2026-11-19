@@ -9,7 +9,7 @@ const n0 = (v) => Math.round(v).toString();
 const LAGE = { Tunnel: 'Tunnel', Viadukt: 'Hochbahn (Viadukt)', Damm: 'Damm', Einschnitt: 'Einschnitt', Plan: 'ebenerdig' };
 const where = (z) => (z < -0.5 ? 'unter lokalem Geländeniveau' : z > 0.5 ? 'über lokalem Geländeniveau' : 'auf Geländeniveau');
 
-export function StationCard({ s, iso, transfers, onClose, onLine, onStation }) {
+export function StationCard({ s, iso, ctx, transfers, onClose, onBack, onFocus, onLine, onStation }) {
   const nameNow = nameAt(s, iso);
   const state = stateAt(s, iso);
   const pct = Math.min(100, (Math.max(0, -s.z) / 22) * 100);
@@ -55,7 +55,10 @@ export function StationCard({ s, iso, transfers, onClose, onLine, onStation }) {
         </>
       )}
       <div className="actions">
-        <button type="button" className="chip" onClick={() => onLine(s.line)}>Profil {s.line}</button>
+        {ctx ? <button type="button" className="chip" onClick={onBack} title={`Zurück zum Profil ${ctx}`} aria-label={`Zurück zum Profil ${ctx}`}>← {ctx}</button>
+          : <button type="button" className="chip" onClick={() => onLine(s.line)}>Profil {s.line}</button>}
+        <button type="button" className="chip" onClick={onFocus} title="Kamera auf diesen Bahnhof richten">Zum Bahnhof</button>
+        {ctx && <button type="button" className="chip" onClick={onClose}>Gesamtnetz</button>}
         {s.wiki_de && <a href={`https://de.wikipedia.org/wiki/${encodeURIComponent(s.wiki_de.replace(/ /g, '_'))}`} target="_blank" rel="noreferrer">Wikipedia</a>}
       </div>
     </div>
@@ -114,7 +117,7 @@ function Profile({ prof, color, iso, onStation }) {
   );
 }
 
-export function LineCard({ line, color, stations, prof, iso, hidden, year, onShow, onClose, onStation }) {
+export function LineCard({ line, color, stations, prof, iso, hidden, year, onShow, onClose, onShowMap, onStation }) {
   // Kennzahlen beziehen sich auf Bahnhofseinträge der Linie (nicht auf alle Trassenpunkte)
   // Bahnhöfe = Stationsknoten (s.node); Bahnsteig-/Ebenen-Einträge bleiben erhalten und werden getrennt genannt
   const nodes = new Set(stations.map((s) => s.node)).size;
@@ -152,6 +155,10 @@ export function LineCard({ line, color, stations, prof, iso, hidden, year, onSho
             <span><i className="dot-fill" style={{ background: color }} />Kreis: Quellenangabe ({cnt.quelle})</span>
             <span><i className="dot-sq" style={{ background: color }} />Quadrat: abgeleitet ({cnt.abgeleitet})</span>
             <span><i className="hollow" style={{ borderColor: color }} />hohler Kreis: Modellschätzung ({cnt.modell})</span>
+          </div>
+          <div className="actions">
+            <button type="button" className="chip" onClick={onShowMap}>Linie auf Karte zeigen</button>
+            <button type="button" className="chip" onClick={onClose}>Gesamtnetz</button>
           </div>
           <p className="hint small">Form = Herkunft des Werts, nicht Messgenauigkeit; «ca.», «rund» und Spannen stehen am Wert. Längsprofil der längsten durchgehenden Strecke · Höhen ü. NHN · Trasse interpoliert und geglättet, keine Vermessung.</p>
         </>

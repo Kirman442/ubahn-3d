@@ -8,6 +8,7 @@ const ring = new THREE.TorusGeometry(STATION_RADIUS * 1.35, STATION_RADIUS * 0.1
 ring.rotateX(Math.PI / 2);
 const selRing = new THREE.TorusGeometry(STATION_RADIUS * 1.9, STATION_RADIUS * 0.14, 8, 48);
 selRing.rotateX(Math.PI / 2);
+const xraySphere = new THREE.SphereGeometry(STATION_RADIUS * 0.8, 16, 10);
 
 const useDispose = (objs) => useEffect(() => () => [].concat(objs).forEach((o) => o?.dispose?.()), [objs]);
 
@@ -77,7 +78,7 @@ export function Tubes({ sections, visible, Y, colorMode, focusLine, onHover, onP
 }
 
 // ---------- станции ----------
-export function Stations({ stations, Y, colorMode, focusLine, selectedId, onHover, onPick }) {
+export function Stations({ stations, Y, colorMode, focusLine, selectedId, hoverId, onHover, onPick }) {
   const mats = useMemo(() => {
     const cache = new Map();
     return (s, faded) => {
@@ -94,7 +95,14 @@ export function Stations({ stations, Y, colorMode, focusLine, selectedId, onHove
       return cache.get(key);
     };
   }, [colorMode]);
-  const ringMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#B7762C' }), []);
+  const ringMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#B7762C', depthTest: false, transparent: true }), []);
+  // Röntgen-Markierung: gewählter/überfahrener Bahnhof bleibt auch unter einer deckenden Oberfläche sichtbar
+  const xray = useMemo(() => new Map(), []);
+  const xrayMat = (c) => {
+    if (!xray.has(c)) xray.set(c, new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.85, depthTest: false, depthWrite: false }));
+    return xray.get(c);
+  };
+  useEffect(() => () => { ringMat.dispose(); xray.forEach((m) => m.dispose()); }, [ringMat, xray]);
 
   return (
     <group>
@@ -112,7 +120,8 @@ export function Stations({ stations, Y, colorMode, focusLine, selectedId, onHove
               onClick={(e) => { if (e.delta > 5) return; e.stopPropagation(); onPick({ kind: 'station', id: s.id }); }}
             />
             {ghost && <mesh geometry={ring} raycast={() => null}><meshBasicMaterial color={s.color} /></mesh>}
-            {selectedId === s.id && <mesh geometry={selRing} material={ringMat} raycast={() => null} />}
+            {(selectedId === s.id || hoverId === s.id) && <mesh geometry={xraySphere} material={xrayMat(s.color)} renderOrder={20} raycast={() => null} />}
+            {selectedId === s.id && <mesh geometry={selRing} material={ringMat} renderOrder={21} raycast={() => null} />}
           </group>
         );
       })}

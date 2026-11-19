@@ -24,6 +24,8 @@ export default function App() {
   const [hiddenLines, setHiddenLines] = useState(() => new Set());
   const [opts, setOpts] = useState(DEFAULT_OPTS);
   const [sel, setSel] = useState(null);        // {kind:'station', id} | {kind:'line', line}
+  const [focusLine, setFocusLine] = useState(null); // untersuchte Linie, unabhängig vom gewählten Bahnhof
+  const [preset, setPreset] = useState('iso');      // aktiver Kamera-Preset; null nach freier Bewegung
   const [hover, setHover] = useState(null);
   const scene = useRef();
   const main = useRef();
@@ -62,7 +64,6 @@ export default function App() {
     return { sectionVisible, stations, byId, transfers };
   }, [data, iso, hiddenLines]);
 
-  const focusLine = sel?.kind === 'line' ? sel.line : null;
   const selStation = sel?.kind === 'station' ? view?.byId[sel.id] : null;
   const hoverStation = hover?.kind === 'station' ? view?.byId[hover.id] : null;
 
@@ -142,21 +143,30 @@ export default function App() {
     if (next.has(id)) next.delete(id); else next.add(id);
     return next;
   });
+  // Bahnhof wählen: Linienfokus bleibt; Bahnhof einer anderen Linie (z. B. Umstieg) wechselt den Fokus auf deren Linie
   const pickStation = (id, fly = true) => {
     setSel({ kind: 'station', id });
     const s = view?.byId[id];
-    if (s && fly) scene.current?.focus(s.x, Y(s.z, s.ground), s.zz);
+    if (s && focusLine && s.line !== focusLine) setFocusLine(s.line);
+    if (s && fly) { scene.current?.focus(s); setPreset(null); }
   };
-  const pickLine = (line) => { setSel({ kind: 'line', line }); };
+  const pickLine = (line) => { setSel({ kind: 'line', line }); setFocusLine(line); };
+  const clearAll = () => { setSel(null); setFocusLine(null); };
+  // ein Schritt zurück: Bahnhof → Profil der untersuchten Linie → Gesamtübersicht
+  const stepBack = () => { if (sel?.kind === 'station' && focusLine) setSel({ kind: 'line', line: focusLine }); else clearAll(); };
+  const lineStations = (l) => view?.stations.filter((s) => s.line === l) || [];
+  const camView = (v) => { scene.current?.view(v, focusLine ? lineStations(focusLine) : null); setPreset(v); };
+  const showLineOnMap = () => { if (scene.current?.frame(lineStations(focusLine), 'iso')) setPreset(null); };
 
+  const back = useRef(stepBack); back.current = stepBack;
   useEffect(() => {
-    const k = (e) => { if (e.key === 'Escape') setSel(null); };
+    const k = (e) => { if (e.key === 'Escape') back.current(); };
     window.addEventListener('keydown', k);
     return () => window.removeEventListener('keydown', k);
   }, []);
 
   // Prüfhaken für Szenario-Skripte (ersetzt keinen Klick-Test der Oberfläche)
-  useEffect(() => { window.__pick = { station: (id, fly = false) => pickStation(id, fly), line: (l) => pickLine(l) }; window.__app = { year, opts, stations: view?.stations.length, sections: view?.sectionVisible.filter(Boolean).length, labels: labelItems.length, stats, sel }; });
+  useEffect(() => { window.__pick = { station: (id, fly = false) => pickStation(id, fly), line: (l) => pickLine(l) }; window.__app = { year, opts, focusLine, preset, stations: view?.stations.length, sections: view?.sectionVisible.filter(Boolean).length, labels: labelItems.length, stats, sel }; });
 
   // подсказка при наведении
   let tip = null;
@@ -190,9 +200,9 @@ export default function App() {
         {error && <div className="error">Daten konnten nicht geladen werden: {error}</div>}
         {data && view && extent && (
           <Scene ref={scene} data={data} view={view} Y={Y} SY={SY} opts={{ ...opts, exag }} extent={extent} bg={bg}
-            focusLine={focusLine} selectedId={selStation?.id} labelItems={labelItems}
-            onHover={setHover}
-            onPick={(p) => { if (!p) setSel(null); else if (p.kind === 'station') pickStation(p.id, false); else pickLine(p.line); }} />
+            focusLine={focusLine} selected={selStation} hoverId={hoverStation?.id} labelItems={labelItems}
+            onHover={setHover} onUserCamera={() => setPreset(null)}
+            onPick={(p) => { if (!p) stepBack(); else if (p.kind === 'station') pickStation(p.id, false); else pickLine(p.line); }} />
         )}
         {tip}
         {data && (
@@ -200,25 +210,26 @@ export default function App() {
             opts={opts} setOpt={setOpt} deepest={deepest} iso={iso} year={year} onStation={(id) => pickStation(id)} />
         )}
         {selStation && (
-          <StationCard s={selStation} iso={iso}
+          <StationCard s={selStation} iso={iso} ctx={focusLine}
             transfers={view.transfers.filter((p) => p.includes(selStation.id)).map((p) => view.byId[p[0] === selStation.id ? p[1] : p[0]])}
-            onClose={() => setSel(null)} onLine={pickLine} onStation={(id) => pickStation(id)} />
+            onClose={clearAll} onBack={stepBack} onFocus={() => { scene.current?.focus(selStation); setPreset(null); }}
+            onLine={pickLine} onStation={(id) => pickStation(id)} />
         )}
         {selMissing && (
           <div className="card" role="region" aria-label="Ausgewählter Bahnhof">
-            <button type="button" className="close" onClick={() => setSel(null)} aria-label="Schließen">×</button>
+            <button type="button" className="close" onClick={stepBack} aria-label="Schließen">×</button>
             <div className="ttl"><span className="badge" style={{ background: LINE_COLOR[selMissing.r.line] }}>{selMissing.r.line}</span><strong>{selMissing.name}</strong></div>
             <p className="note">{selMissing.text}</p>
             <div className="actions">
               {selMissing.action && <button type="button" className="chip" onClick={selMissing.run}>{selMissing.action}</button>}
-              <button type="button" className="chip" onClick={() => setSel(null)}>Auswahl aufheben</button>
+              <button type="button" className="chip" onClick={stepBack}>Auswahl aufheben</button>
             </div>
           </div>
         )}
-        {focusLine && lineInfo && (
+        {focusLine && lineInfo && sel?.kind === 'line' && (
           <LineCard line={focusLine} color={LINE_COLOR[focusLine]} stations={lineInfo.stations} prof={lineInfo.prof} iso={iso}
             hidden={lineInfo.hidden} year={year} onShow={() => toggleLine(focusLine)}
-            onClose={() => setSel(null)} onStation={(id) => pickStation(id)} />
+            onClose={clearAll} onShowMap={showLineOnMap} onStation={(id) => pickStation(id)} />
         )}
         {allHidden && (
           <div className="empty" role="status">
@@ -227,9 +238,10 @@ export default function App() {
           </div>
         )}
         <div className="views">
-          <div className="seg">
+          <div className="seg" role="group" aria-label="Kameraansicht">
             {[['iso', '3D'], ['top', 'Oben'], ['side', 'Seite'], ['below', 'Unten']].map(([v, l]) => (
-              <button key={v} type="button" onClick={() => scene.current?.view(v)}>{l}</button>
+              <button key={v} type="button" aria-pressed={preset === v} onClick={() => camView(v)}
+                title={v === 'side' && focusLine ? `Seitenansicht Linie ${focusLine}` : undefined}>{l}{v === 'side' && focusLine ? ` ${focusLine}` : ''}</button>
             ))}
           </div>
         </div>
