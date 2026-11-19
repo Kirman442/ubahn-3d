@@ -15,20 +15,46 @@ const xraySphere = new THREE.SphereGeometry(STATION_RADIUS * 0.8, 16, 10);
 const useDispose = (objs) => useEffect(() => () => [].concat(objs).forEach((o) => o?.dispose?.()), [objs]);
 
 // ---------- трубки участков ----------
+// Glättung: Rohpunkte gleichmäßig neu abtasten und sanft mitteln (Endpunkte = Bahnhöfe bleiben fest).
+// Sonst knickt die dicke Röhre an dicht liegenden/verrauschten Punkten und bei starker Überhöhung ein.
+function smoothPath(pts, rel, step, passes) {
+  const cum = [0];
+  for (let k = 1; k < pts.length; k++) cum.push(cum[k - 1] + pts[k].distanceTo(pts[k - 1]));
+  const L = cum[cum.length - 1];
+  const n = Math.max(2, Math.round(L / step) + 1);
+  let P = []; const R = [];
+  let j = 0;
+  for (let i = 0; i < n; i++) {
+    const d = (i / (n - 1)) * L;
+    while (j < pts.length - 2 && cum[j + 1] < d) j++;
+    const t = Math.min(1, Math.max(0, (d - cum[j]) / ((cum[j + 1] - cum[j]) || 1)));
+    P.push(pts[j].clone().lerp(pts[j + 1], t)); R.push(rel[j] + (rel[j + 1] - rel[j]) * t);
+  }
+  for (let it = 0; it < passes; it++) {
+    const Q = P.map((v) => v.clone());
+    for (let i = 1; i < P.length - 1; i++) Q[i].set(0, 0, 0).addScaledVector(P[i - 1], 0.25).addScaledVector(P[i], 0.5).addScaledVector(P[i + 1], 0.25);
+    P = Q;
+  }
+  return [P, R];
+}
+
 function tubeGeometry(sec, Y, colorDepth, radius) {
-  const pts = [];
-  const rel = [];
-  const dist = [];
+  const raw = [];
+  const rawRel = [];
   for (let k = 0; k < sec.pts.length; k++) {
     const p = sec.pts[k];
     const v = new THREE.Vector3(p.x, Y(p.z, p.g), p.zz);
-    if (pts.length && v.distanceTo(pts[pts.length - 1]) < 2) continue;
-    pts.push(v); rel.push(p.z); dist.push(sec.dist[k]);
+    if (raw.length && v.distanceTo(raw[raw.length - 1]) < 2) continue;
+    raw.push(v); rawRel.push(p.z);
   }
-  if (pts.length < 2) return null;
+  if (raw.length < 2) return null;
+  // Abtastschritt ≈ Röhrendurchmesser; Mittelung über einige Durchmesser
+  const [pts, rel] = smoothPath(raw, rawRel, radius * 1.5, 6);
+  const dist = [0];
+  for (let k = 1; k < pts.length; k++) dist.push(dist[k - 1] + pts[k].distanceTo(pts[k - 1]));
   const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
   const segs = Math.min(1500, Math.max(8, Math.round(sec.length_m / 12)));
-  const radial = 8;
+  const radial = 12;
   const geo = new THREE.TubeGeometry(curve, segs, radius, radial, false);
   if (colorDepth) {
     // глубина вдоль трубки: интерполяция по пройденному расстоянию
