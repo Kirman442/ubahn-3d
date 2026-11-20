@@ -295,7 +295,7 @@ header h1 { font-size: 1.3rem; letter-spacing: -0.01em; color: var(--ink); }
 .loading { position: absolute; z-index: 7; left: 50%; top: 45%; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: 16px; background: var(--glass-strong); backdrop-filter: blur(16px); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow); color: var(--ink); font-size: 0.9rem; }
 .spin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--rule); border-top-color: var(--accent); animation: spin 0.9s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; scroll-behavior: auto !important; } }
 .error { top: 45%; transform: translate(-50%, -50%); z-index: 9; max-width: min(420px, calc(100% - 24px)); border-radius: 16px; padding: 14px 18px; background: var(--glass-strong); color: var(--ink); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow); }
 .error p { margin: 0 0 6px; }
 .error details { margin-top: 8px; font-size: 0.72rem; color: var(--muted); }
@@ -332,3 +332,28 @@ header h1 { font-size: 1.3rem; letter-spacing: -0.01em; color: var(--ink); }
 /* Strecken im Bau: gestrichelter Balken in den Farben der Linien */
 .swatch.dash { background: repeating-linear-gradient(90deg, var(--c1) 0 5px, transparent 5px 8px, var(--c2) 8px 13px, transparent 13px 16px); height: 5px; }
 .lines li.build .muted { font-size: 0.74rem; }
+/* Impressum / Datenschutz: deckender Hintergrund, damit der Text über der Szene gut lesbar ist */
+:root, [data-theme='hell'] { --legal-bg: #FBFCFD; }
+[data-theme='dunkel'] { --legal-bg: #161B22; }
+.legal-links { display: flex; gap: 4px; align-items: center; justify-content: center; font-size: 0.74rem; color: var(--muted); }
+.legal-links .linkbtn { font-size: 0.74rem; color: var(--muted); min-height: 24px; }
+.legal-links .linkbtn:hover { color: var(--ink); }
+.legal-links.out { position: absolute; z-index: 4; right: 12px; bottom: 8px; width: 268px; }
+.legal-links.in { display: none; margin-top: 8px; }
+@media (max-width: 980px) { .legal-links.out { display: none; } .legal-links.in { display: flex; } }
+.legal-back { position: fixed; inset: 0; z-index: 50; background: rgba(10, 14, 20, 0.45); display: grid; place-items: center; padding: 12px; }
+.legal { position: relative; width: min(640px, 100%); max-height: calc(100% - 24px); overflow-y: auto; border-radius: 20px; padding: 14px 20px 18px;
+  background: var(--legal-bg); color: var(--ink); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow); font-size: 0.84rem; line-height: 1.5; }
+.legal-top { display: flex; align-items: center; gap: 10px; position: sticky; top: -14px; padding: 4px 0 8px; background: inherit; z-index: 1; }
+.legal-tabs { flex: none; }
+.legal-tabs button { padding: 4px 12px; }
+.legal-tabs button.on { background: var(--glass-strong); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15); font-weight: 600; }
+.legal .close { margin-left: auto; border: 0; background: none; font-size: 1.4rem; color: var(--muted); line-height: 1; }
+.legal h2 { margin: 6px 0 6px; font-size: 1.1rem; }
+.legal h2:focus { outline: none; }
+.legal h3 { margin: 14px 0 4px; font-size: 0.86rem; }
+.legal p { margin: 0 0 6px; }
+.legal ul { margin: 0 0 6px; padding-left: 18px; }
+.legal a { color: var(--accent); }
+.legal .todo { color: var(--ochre); font-weight: 600; }
+.legal .muted { color: var(--muted); font-size: 0.78rem; margin-top: 12px; }

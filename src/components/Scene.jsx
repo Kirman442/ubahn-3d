@@ -174,7 +174,7 @@ const Scene = forwardRef(function Scene(props, ref) {
         {opts.transfers && <Transfers pairs={view.transfers} byId={view.byId} Y={Y} />}
         <Labels items={labelItems} overlay={overlay} />
         <CameraRig api={rig} Y={Y} SY={SY} exag={opts.exag} selected={selected} />
-        <OrbitControls makeDefault target={t0} enableDamping dampingFactor={0.08} minDistance={300} maxDistance={150000} onStart={onUserCamera} />
+        <OrbitControls makeDefault target={t0} enableDamping={!reducedMotion()} dampingFactor={0.08} minDistance={300} maxDistance={150000} onStart={onUserCamera} />
       </Canvas>
       <div className="labels" ref={overlay} />
     </div>

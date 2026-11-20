@@ -3,6 +3,7 @@ import { DEEP_LABEL, END_YEAR } from '../lib/config';
 import { CITY, LINE_COLOR, lineBg } from '../lib/city';
 import { RAMP_CSS } from '../lib/colors';
 import { nameAt } from '../lib/time';
+import { LegalLinks } from './Legal';
 import { depthText, statusShort, isApprox } from '../lib/depth';
 
 const Seg = ({ value, set, options, labelledby }) => (
@@ -51,7 +52,7 @@ export default function Panel(p) {
   // «Darstellung» standardmäßig offen; Zustand je Betrachter merken
   const [darstOpen, setDarstOpen] = useState(() => { try { return localStorage.getItem('ubahn3d.darst') !== '0'; } catch { return true; } });
   useEffect(() => { try { localStorage.setItem('ubahn3d.darst', darstOpen ? '1' : '0'); } catch { /* ohne Speicher */ } }, [darstOpen]);
-  const { build, surfaceKind, stats, hiddenLines, toggleLine, showAll, focusLine, onLine, opts, setOpt, deepest, iso, year, onStation, stations, open, setOpen } = p;
+  const { build, surfaceKind, stats, hiddenLines, toggleLine, showAll, focusLine, onLine, opts, setOpt, deepest, iso, year, onStation, stations, open, setOpen, openLegal } = p;
   const md = stats.maxDepthSt;
   return (
     <aside className={`panel${open ? ' open' : ''}`} id="panel" aria-label="Steuerung">
@@ -169,6 +170,7 @@ export default function Panel(p) {
       </details>
 
       <p className="hint">{CITY.attribution}</p>
+      <LegalLinks open={openLegal} className="in" />
     </aside>
   );
 }

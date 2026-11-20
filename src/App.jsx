@@ -6,6 +6,7 @@ import { StationCard, LineCard } from './components/Card';
 import { END_YEAR, DEFAULT_EXAG, DEEP_LABEL } from './lib/config';
 import { CITIES, CITY, LINE_COLOR, lineBg, setCity as applyCity, cityFromHash } from './lib/city';
 import ModelInfo from './components/ModelInfo';
+import Legal, { LegalLinks } from './components/Legal';
 import { prepare, makeY, surfaceY, lineChain, lineProfile, isUnderground } from './lib/model';
 import { depthText, statusShort, isApprox } from './lib/depth';
 import { fmtM } from './lib/colors';
@@ -61,6 +62,11 @@ function CityApp({ city, choose, opts, setOpts }) {
   const main = useRef();
   const setOpt = (k, v) => setOpts((o) => ({ ...o, [k]: v }));
   const [info, setInfo] = useState(false);
+  // Impressum/Datenschutz: Seite oder null; Fokus kehrt beim Schließen zum auslösenden Link zurück
+  const [legal, setLegal] = useState(null);
+  const legalFrom = useRef(null);
+  const openLegal = (p, el) => { legalFrom.current = el || null; setInfo(false); setLegal(p); };
+  const closeLegal = () => { setLegal(null); legalFrom.current?.focus?.(); };
   useEffect(() => {
     document.documentElement.dataset.theme = opts.theme;
     try { localStorage.setItem('ubahn3d.theme', opts.theme); localStorage.setItem('ubahn3d.style', opts.style); } catch { /* ohne Speicher */ }
@@ -278,7 +284,11 @@ function CityApp({ city, choose, opts, setOpts }) {
   const camView = (v) => { scene.current?.view(v, focusLine ? lineStations(focusLine) : null); setPreset(v); };
   const showLineOnMap = () => { if (scene.current?.frame(lineStations(focusLine), 'iso')) setPreset(null); };
 
-  const back = useRef(stepBack); back.current = stepBack;
+  // Esc schließt zuerst ein offenes Fenster (Rechtliches, Hinweise) und gibt den Fokus an dessen Knopf zurück, sonst ein Schritt zurück
+  const infoBtn = useRef(null);
+  const closeInfo = () => { setInfo(false); infoBtn.current?.focus(); };
+  const back = useRef(stepBack);
+  back.current = () => { if (legal) closeLegal(); else if (info) closeInfo(); else stepBack(); };
   useEffect(() => {
     const k = (e) => { if (e.key === 'Escape') back.current(); };
     window.addEventListener('keydown', k);
@@ -341,7 +351,7 @@ function CityApp({ city, choose, opts, setOpts }) {
         <label className="city-sel"><span className="sr">Stadt</span>
           <select value={city} onChange={(e) => choose(e.target.value)}>{CITIES.map((c) => <option key={c.id} value={c.id} disabled={!c.ready}>{c.name}{c.ready ? '' : ' (bald)'}</option>)}</select>
         </label>
-        <button type="button" className="info-btn" aria-label="Über das Modell" aria-expanded={info} onClick={() => setInfo((v) => !v)}>i</button>
+        <button type="button" ref={infoBtn} className="info-btn" aria-label="Über das Modell" aria-expanded={info} onClick={() => setInfo((v) => !v)}>i</button>
         <button type="button" className="theme-btn" onClick={() => setOpt('theme', opts.theme === 'dunkel' ? 'hell' : 'dunkel')}
           aria-label={opts.theme === 'dunkel' ? 'Helles Design' : 'Dunkles Design'} title={opts.theme === 'dunkel' ? 'Hell' : 'Dunkel'}>{opts.theme === 'dunkel' ? '☀' : '☾'}</button>
         <p className="sr">Vereinfachtes Höhenmodell von Tunneln, Hochbahnen und Bahnhöfen – Höhenunterschiede ×{opts.exag} vergrößert, Meterangaben unverändert</p>
@@ -370,10 +380,12 @@ function CityApp({ city, choose, opts, setOpts }) {
             onPick={(p) => { if (!p) stepBack(); else if (p.kind === 'station') pickStation(p.id, false); else pickLine(p.line); }} />
         )}
         {tip}
-        {info && <ModelInfo exag={opts.exag} onClose={() => setInfo(false)} />}
+        {info && <ModelInfo exag={opts.exag} onClose={closeInfo} />}
+        {legal && <Legal page={legal} setPage={setLegal} onClose={closeLegal} />}
+        <LegalLinks open={openLegal} className="out" />
         {data && (
           <Panel build={data?.construction?.length ? { n: data.constructionStations?.length || 0, lines: [...new Set(data.construction.map((c) => c.line))], now: year >= END_YEAR } : null} surfaceKind={surfaceKind} stats={stats} hiddenLines={hiddenLines} toggleLine={toggleLine} showAll={showAllLines} focusLine={focusLine} onLine={pickLine}
-            stations={view?.stations || []} open={panelOpen} setOpen={showPanel}
+            stations={view?.stations || []} open={panelOpen} setOpen={showPanel} openLegal={openLegal}
             opts={opts} setOpt={setOpt} deepest={deepest} iso={iso} year={year} onStation={(id) => pickStation(id)} />
         )}
         {selStation && (
