@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { TUBE_RADIUS, STATION_RADIUS } from '../lib/config';
 import { depthColor } from '../lib/colors';
-import { LINE_COLOR2 } from '../lib/city';
+import { LINE_COLOR, LINE_COLOR2 } from '../lib/city';
 
 const sphere = new THREE.SphereGeometry(STATION_RADIUS, 20, 14);
 // Stil «neu»: größere Kugel passend zu den dickeren Röhren
@@ -246,17 +246,34 @@ export function SurfaceTraces({ sections, visible, SY }) {
 }
 
 // ---------- Baustelle (gestrichelt, ohne Höhenangaben der Quelle) ----------
-export function Construction({ items, Y, color }) {
-  const geo = useMemo(() => {
-    const a = [];
-    items.forEach((c) => { for (let k = 1; k < c.pts.length; k++) { const p = c.pts[k - 1]; const q = c.pts[k]; a.push(p.x, Y(p.z, p.g), p.zz, q.x, Y(q.z, q.g), q.zz); } });
-    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(a, 3));
-    return g;
+// Linie ohne amtliche Farbe (Hamburg U5): neutral grau statt erfundener Farbe
+const NO_COLOR = '#A0A0A0';
+export function Construction({ items, stations = [], Y }) {
+  const geos = useMemo(() => {
+    const by = new Map();
+    items.forEach((c) => {
+      if (!by.has(c.line)) by.set(c.line, []);
+      const a = by.get(c.line);
+      for (let k = 1; k < c.pts.length; k++) { const p = c.pts[k - 1]; const q = c.pts[k]; a.push(p.x, Y(p.z, p.g), p.zz, q.x, Y(q.z, q.g), q.zz); }
+    });
+    return [...by].map(([line, a]) => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(a, 3)); return [line, g]; });
   }, [items, Y]);
-  useDispose(geo);
+  useEffect(() => () => geos.forEach(([, g]) => g.dispose()), [geos]);
+  const col = (line) => LINE_COLOR[line] || NO_COLOR;
   return (
-    <lineSegments geometry={geo} onUpdate={(l) => l.computeLineDistances()} raycast={() => null}>
-      <lineDashedMaterial color={color} dashSize={60} gapSize={45} />
-    </lineSegments>
+    <group>
+      {geos.map(([line, g]) => (
+        <lineSegments key={line} geometry={g} onUpdate={(l) => l.computeLineDistances()} raycast={() => null}>
+          <lineDashedMaterial color={col(line)} dashSize={60} gapSize={45} />
+        </lineSegments>
+      ))}
+      {/* Bahnhöfe im Bau: wie unterbrochene Bahnhöfe – blasse Kugel mit Ring in Linienfarbe */}
+      {stations.map((s) => (
+        <group key={`${s.line}|${s.name}`} position={[s.x, Y(s.z, s.ground), s.zz]}>
+          <mesh geometry={sphere} raycast={() => null}><meshStandardMaterial color="#ffffff" transparent opacity={0.3} depthWrite={false} /></mesh>
+          <mesh geometry={ring} raycast={() => null}><meshBasicMaterial color={col(s.line)} /></mesh>
+        </group>
+      ))}
+    </group>
   );
 }

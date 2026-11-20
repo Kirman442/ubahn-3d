@@ -8,7 +8,6 @@ import Surface from './Surface';
 import Labels from './Labels';
 import Soil from './Soil';
 import { isUnderground, H0 } from '../lib/model';
-import { LINE_COLOR } from '../lib/city';
 
 const TAN = Math.tan(THREE.MathUtils.degToRad(42 / 2));
 const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -169,7 +168,7 @@ const Scene = forwardRef(function Scene(props, ref) {
         <Guides extent={extent} mode={opts.mode} exag={opts.exag} showGrid={opts.grid} showLevels={opts.levels} />
         {opts.mode === 'abs' && opts.grid && <SurfaceTraces sections={data.sections} visible={view.sectionVisible} SY={SY} />}
         {opts.shafts && <Shafts stations={view.stations} Y={Y} SY={SY} />}
-        {data.construction?.length > 0 && <Construction items={data.construction} Y={Y} color={LINE_COLOR[data.construction[0].line]} />}
+        {data.construction?.length > 0 && <Construction items={data.construction} stations={data.constructionStations} Y={Y} />}
         <Tubes neu={neu} glow={dark} sections={data.sections} visible={view.sectionVisible} Y={Y} colorMode={opts.color} focusLine={focusLine} onHover={onHover} onPick={onPick} />
         <Stations neu={neu} sections={data.sections} stations={view.stations} Y={Y} colorMode={opts.color} focusLine={focusLine} selectedId={selected?.id} hoverId={hoverId} onHover={onHover} onPick={onPick} />
         {opts.transfers && <Transfers pairs={view.transfers} byId={view.byId} Y={Y} />}

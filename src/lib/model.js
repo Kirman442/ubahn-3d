@@ -40,7 +40,8 @@ export function prepare(net, geo) {
   }
   // Baustellen (nur Darstellung, gestrichelt)
   const construction = (net.construction || []).map((c) => ({ ...c, pts: c.xyz.map(([lon, lat, z], k) => { const [x, zz] = toXZ(lon, lat); return { x, zz, z, g: c.g[k] }; }) }));
-  return { stations, sections, transfers, construction };
+  const constructionStations = (net.constructionStations || []).map((s) => { const [x, zz] = toXZ(s.lon, s.lat); return { ...s, line: s.line || construction[0]?.line, x, zz }; });
+  return { stations, sections, transfers, construction, constructionStations };
 }
 
 // Станционный узел (Bahnhof) ≠ запись линии/уровня. Записи объединяются в один узел, если у них

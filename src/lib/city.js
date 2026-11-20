@@ -16,7 +16,7 @@ export const CITIES = [
     // Farben aus den OSM-Routenrelationen (colour); ZR = Zweigbahn Rothenburgsort 1915–1943, heute ohne Nummer
     lines: [{ id: 'U1', color: '#006AB3' }, { id: 'U2', color: '#E2001A' }, { id: 'U3', color: '#FFDD00' }, { id: 'U4', color: '#256D7B' }, { id: 'ZR', color: '#8C8C8C' }],
     dgm: 'DGM1 Hamburg, außerhalb EU-DEM', search: 'z. B. Jungfernstieg',
-    note: 'Gemessen sind 9 Bahnhofstiefen (Wikipedia); die übrigen sind aus Lage, Ebene oder OSM geschätzt, die Trasse dazwischen aus Gelände und Bauregeln. Außerhalb Hamburgs (Norderstedt, Ahrensburg, Großhansdorf) Gelände nach EU-DEM 25 m. U2 und U4 teilen zwischen Jungfernstieg und Berliner Tor dasselbe Gleis; die Röhren sind dort nur zur Lesbarkeit nebeneinander gezeichnet. Liniennummern sind die heutigen; ZR = Zweigbahn Rothenburgsort (1915–1943).',
+    note: 'Gemessen sind 9 Bahnhofstiefen (Wikipedia); die übrigen sind aus Lage, Ebene oder OSM geschätzt, die Trasse dazwischen aus Gelände und Bauregeln. Außerhalb Hamburgs (Norderstedt, Ahrensburg, Großhansdorf) Gelände nach EU-DEM 25 m. U2 und U4 teilen zwischen Jungfernstieg und Berliner Tor dasselbe Gleis; die Röhren sind dort nur zur Lesbarkeit nebeneinander gezeichnet. Liniennummern sind die heutigen; ZR = Zweigbahn Rothenburgsort (1915–1943). Gestrichelt: im Bau – U4 Horner Rennbahn – Horner Geest (Eröffnung 2027) und U5 Bramfeld – City Nord (2029/2033); Tiefen außer Stoltenstraße und City Nord geschätzt, U5 ohne amtliche Farbe grau.',
     attribution: 'Gelände: DGM1 © Freie und Hansestadt Hamburg, LGV (dl-de/by-2.0), außerhalb EU-DEM (Copernicus) · Geschichte und Tiefen: Wikipedia (CC BY-SA 4.0), Wikidata (CC0) · Lage: © OpenStreetMap-Mitwirkende (ODbL)',
   },
   {
