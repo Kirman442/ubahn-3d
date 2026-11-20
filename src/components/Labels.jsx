@@ -60,7 +60,10 @@ export default function Labels({ items, overlay }) {
       v.set(it.x, it.y, it.z);
       const dist = v.distanceTo(camera.position);
       v.project(camera);
-      const zoomOk = !it.rank || !ref0.current || cd < ZOOM_RANK[it.rank] * ref0.current;
+      // Zoomstufe mit Hysterese (±6 %): an der Schwelle kein Flackern beim Mausrad
+      let zoomOk = true;
+      if (it.rank && ref0.current) { const thr = ZOOM_RANK[it.rank] * ref0.current; zoomOk = e.zOk ? cd < thr * 1.06 : cd < thr * 0.94; }
+      e.zOk = zoomOk;
       const on = zoomOk && v.z < 1 && v.z > -1 && Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1;
       if (on !== e.shown) { e.el.style.display = on ? 'block' : 'none'; e.shown = on; }
       if (!on) continue;

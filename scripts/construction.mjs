@@ -49,3 +49,20 @@ export function buildConstruction(cons, stations, { MX, MY, sign = 1 }) {
   if (guessed.size) console.log(`Tiefe fehlt, gehalten: ${[...guessed].join(', ')}`);
   return { construction, constructionStations };
 }
+
+// Nürnberg: OSM-Wege ohne Tiefe und ohne Endbahnhöfe (U3 Großreuth – Gebersdorf). Höhenlage = Großreuth (geschätzt,
+// Hinweis im «i»), Gelände je Punkt aus ground_dgm1_m (Median über 3 gegen Einzelausreißer), Eröffnung aus «expected».
+export function nuernbergConstruction(cons, gr) {
+  const pts = cons.features.filter((f) => f.geometry.type === 'Point');
+  const year = (t) => +(String(t || '').match(/\b(20\d\d)\b/) || [])[1] || null;
+  const opening = pts.map((f) => year(f.properties.expected)).filter(Boolean).sort().pop() || null;
+  const med3 = (a) => a.map((_, k) => { const w = a.slice(Math.max(0, k - 1), k + 2).filter((v) => v != null).sort((x, y) => x - y); return w.length ? w[(w.length - 1) >> 1] : gr.ground; });
+  const construction = cons.features.filter((f) => f.geometry.type === 'LineString').map((f) => {
+    const g = f.properties.ground_dgm1_m && f.properties.ground_dgm1_m.length === f.geometry.coordinates.length ? med3(f.properties.ground_dgm1_m) : f.geometry.coordinates.map(() => gr.ground);
+    return { line: 'U3', from: 'Großreuth bei Schweinau', to: 'Gebersdorf', opening, guessed: true,
+      xyz: f.geometry.coordinates.map(([lon, lat]) => [lon, lat, gr.z]), g };
+  });
+  const constructionStations = pts.map((f) => ({ name: f.properties.name, line: f.properties.line || 'U3', lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1],
+    z: gr.z, ground: f.properties.ground_dgm1_m ?? gr.ground, opening: year(f.properties.expected), guessed: false, measured: false }));
+  return { construction, constructionStations };
+}

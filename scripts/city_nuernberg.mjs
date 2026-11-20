@@ -6,6 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { joinEnds } from './join_ends.mjs';
+import { nuernbergConstruction } from './construction.mjs';
 
 const SRC = process.argv[2] || path.resolve('../../Nürnberg');
 const OUT = path.resolve('public/data/nuernberg');
@@ -74,9 +75,7 @@ for (const s of net.stations) {
 
 // Baustelle Großreuth – Gebersdorf (U3, ohne Höhen): Lage auf Ebene von Großreuth, nur Darstellung
 const gr = net.stations.find((s) => s.id === 'U3-GR' || (s.line === 'U3' && /Großreuth/.test(s.name)));
-const construction = cons.features.filter((f) => f.geometry.type === 'LineString').map((f) => ({
-  line: 'U3', xyz: f.geometry.coordinates.map(([lon, lat]) => [lon, lat, gr.z]), g: f.geometry.coordinates.map(() => gr.ground) }));
-const constructionStations = cons.features.filter((f) => f.geometry.type === 'Point').map((f) => ({ name: f.properties.name, lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], z: gr.z, ground: gr.ground }));
+const { construction, constructionStations } = nuernbergConstruction(cons, gr);
 
 fs.mkdirSync(OUT, { recursive: true });
 // Röhrenenden je Linie und Bahnhof zusammenführen (seitlicher Versatz gemeinsamer Tunnel ohne Sprung)
