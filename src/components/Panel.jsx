@@ -79,7 +79,7 @@ export default function Panel(p) {
             <li key={l.id} className={focusLine === l.id ? 'focus' : ''}>
               <button type="button" className={`tog${off ? ' off' : ''}`} onClick={() => toggleLine(l.id)} aria-pressed={!off}
                 aria-label={`Linie ${l.id} anzeigen`} title={off ? 'ausgeblendet – einblenden' : 'eingeblendet – ausblenden'}>
-                <span className="box" aria-hidden="true">{off ? '' : '✓'}</span><span className="swatch" style={{ background: lineBg(l.id, l.color) }} /><b>{l.id}</b>
+                <span className="box" aria-hidden="true">{off ? '' : '✓'}</span><span className="badge ln" style={{ background: lineBg(l.id, l.color) }}>{l.id}</span>
               </button>
               <span className="muted" title={rec !== n ? `${n} Bahnhöfe, ${rec} Bahnsteig-/Ebenen-Einträge` : `${n} Bahnhöfe`}>{n ? `${n} Bhf.` : '–'}</span>
               <button type="button" className="linkbtn" disabled={!n || off} onClick={() => onLine(l.id)} aria-label={`Profil ${l.id}`}>Profil</button>

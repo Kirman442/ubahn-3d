@@ -49,8 +49,8 @@ export function StationCard({ s, iso, ctx, transfers, focusReq, onClose, onBack,
         <p className="hint small">{provenanceNote(s)}</p>
       </details>
       {transfers.length > 0 && (
-        <p className="meta">Umstieg: {transfers.map((o, i) => (
-          <span key={o.id}>{i ? '; ' : ''}<button type="button" className="link" onClick={() => onStation(o.id)}>{o.line}</button> {depthText(o)}</span>
+        <p className="meta xfers">Umstieg: {transfers.map((o, i) => (
+          <span key={o.id} className="xfer"><button type="button" className="badge-btn" onClick={() => onStation(o.id)} aria-label={`Umstieg zu ${o.line}`} title={`Zu ${o.line} wechseln`}><Badge line={o.line} color={o.color} /></button> {depthText(o)}</span>
         ))}</p>
       )}
       {(s.names || []).length > 1 && (
@@ -178,7 +178,7 @@ export function LineCard({ line, color, stations, prof, iso, hidden, year, focus
             <span><i className="dot-sq" style={{ background: color }} />Quadrat: abgeleitet ({cnt.abgeleitet})</span>
             <span><i className="hollow" style={{ borderColor: color }} />hohler Kreis: Modellschätzung ({cnt.modell})</span>
           </div>
-          <div className="actions">
+          <div className="actions even">
             <button type="button" className="chip" onClick={onShowMap}>Linie auf Karte zeigen</button>
             <button type="button" className="chip" onClick={onOnly}>Nur diese Linie</button>
             <button type="button" className="chip" onClick={onNames} aria-pressed={!names}>{names ? 'Namen aus' : 'Namen ein'}</button>

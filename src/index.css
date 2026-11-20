@@ -169,7 +169,16 @@ details.src .facts { margin-top: 4px; }
 .lines li > button.tog { min-height: 28px; }
 .tog .box { width: 14px; height: 14px; border: 1.5px solid var(--muted); border-radius: 3px; font-size: 10px; line-height: 12px; text-align: center; color: var(--ink); background: #fff; flex: none; }
 .lines li > button.off { opacity: 1; }
-.lines li > button.off .swatch, .lines li > button.off b { opacity: 0.35; }
+.lines li > button.off .swatch, .lines li > button.off b, .lines li > button.off .badge { opacity: 0.35; }
+.lines li > button.off .badge { text-decoration: line-through; }
+.badge.ln { min-width: 30px; text-align: center; }
+.actions.even { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.actions.even .chip { width: 100%; justify-content: center; text-align: center; white-space: nowrap; padding-left: 6px; padding-right: 6px; overflow: hidden; text-overflow: ellipsis; }
+.xfers { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+.xfer { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.badge-btn { background: none; border: 0; padding: 0; cursor: pointer; line-height: 0; }
+.badge-btn .badge { line-height: 1.5; }
+.badge-btn:hover .badge { filter: brightness(1.12); }
 .lines li > button.off b { text-decoration: line-through; }
 .panel h2 .linkbtn { text-transform: none; letter-spacing: 0; font-size: 0.74rem; padding: 0 2px; min-height: 0; }
 .search input { width: 100%; padding: 6px 8px; border: 1px solid var(--rule); border-radius: 6px; font: inherit; background: #fff; }

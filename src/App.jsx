@@ -251,11 +251,13 @@ function CityApp({ city, choose, opts, setOpts }) {
     return { stations, hidden: hiddenLines.has(focusLine), prof: chain && chain.length ? lineProfile(chain, stations) : null };
   }, [focusLine, data, iso, hiddenLines, view]);
 
-  const toggleLine = (id) => setHiddenLines((prev) => {
+  // «Nur diese Linie» merkt sich die vorherige Auswahl; «Gesamtnetz» stellt sie wieder her
+  const beforeOnly = useRef(null);
+  const toggleLine = (id) => { beforeOnly.current = null; setHiddenLines((prev) => {
     const next = new Set(prev);
     if (next.has(id)) next.delete(id); else next.add(id);
     return next;
-  });
+  }); };
   // Bahnhof wählen: Linienfokus bleibt; Bahnhof einer anderen Linie (z. B. Umstieg) wechselt den Fokus auf deren Linie
   // Öffnen aus der Oberfläche (nicht aus der Szene): Fokus in die Karte, beim Schließen zurück zum Auslöser
   const noteOpener = () => {
@@ -274,13 +276,13 @@ function CityApp({ city, choose, opts, setOpts }) {
     if (s && fly) { scene.current?.focus(s); setPreset(null); }
   };
   const pickLine = (line) => { noteOpener(); setPlaying(false); setLineNames(true); setSel({ kind: 'line', line }); setFocusLine(line); };
-  const clearAll = () => { setSel(null); setFocusLine(null); returnFocus(); };
+  const clearAll = () => { setSel(null); setFocusLine(null); if (beforeOnly.current) { setHiddenLines(beforeOnly.current); beforeOnly.current = null; } returnFocus(); };
   // ein Schritt zurück: Bahnhof → Profil der untersuchten Linie → Gesamtübersicht
   const stepBack = () => {
     if (sel?.kind === 'station' && focusLine) { setSel({ kind: 'line', line: focusLine }); if (document.activeElement?.closest?.('.card')) setFocusReq((n) => n + 1); } else clearAll();
   };
-  const showAllLines = () => setHiddenLines(new Set());
-  const onlyLine = (l) => setHiddenLines(new Set(LINES.map((x) => x.id).filter((x) => x !== l)));
+  const showAllLines = () => { beforeOnly.current = null; setHiddenLines(new Set()); };
+  const onlyLine = (l) => { if (!beforeOnly.current) beforeOnly.current = hiddenLines; setHiddenLines(new Set(LINES.map((x) => x.id).filter((x) => x !== l))); };
   const lineStations = (l) => view?.stations.filter((s) => s.line === l) || [];
   const camView = (v) => { scene.current?.view(v, focusLine ? lineStations(focusLine) : null); setPreset(v); };
   const showLineOnMap = () => { if (scene.current?.frame(lineStations(focusLine), 'iso')) setPreset(null); };
@@ -414,7 +416,7 @@ function CityApp({ city, choose, opts, setOpts }) {
         {allHidden && (
           <div className="empty" role="status">
             <p><b>Keine Linien eingeblendet.</b></p>
-            <button type="button" className="chip" onClick={() => setHiddenLines(new Set())}>Alle anzeigen</button>
+            <button type="button" className="chip" onClick={showAllLines}>Alle anzeigen</button>
           </div>
         )}
         <div className="views">
