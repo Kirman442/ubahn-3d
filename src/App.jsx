@@ -18,7 +18,7 @@ const load = (name) => fetch(`${import.meta.env.BASE_URL}data/${CITY.data}${name
 });
 
 const saved = (k, fb) => { try { return localStorage.getItem(k) || fb; } catch { return fb; } };
-const START_THEME = saved('ubahn3d.theme', typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dunkel' : 'hell');
+const START_THEME = saved('ubahn3d.theme', 'dunkel'); // Standard dunkel, eigene Wahl bleibt gespeichert
 const DEFAULT_OPTS = { theme: START_THEME, style: saved('ubahn3d.style', 'neu'), exag: DEFAULT_EXAG, surface: 'schema', surfOp: 0.55, mode: 'rel', color: 'line', labels: 'key', build: true, shafts: true, grid: true, levels: true, transfers: true };
 const cssVar = (n, fb) => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || fb;
 

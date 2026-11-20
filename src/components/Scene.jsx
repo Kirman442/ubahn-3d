@@ -8,6 +8,10 @@ import Surface from './Surface';
 import Labels from './Labels';
 import Soil from './Soil';
 import { isUnderground, H0 } from '../lib/model';
+import { CITY } from '../lib/city';
+
+// Kamera je Stadt für die Sitzung merken: beim Zurückwechseln dieselbe Ansicht statt Startansicht
+const CAM = new Map();
 
 const TAN = Math.tan(THREE.MathUtils.degToRad(42 / 2));
 const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -74,6 +78,10 @@ function CameraRig({ api, Y, SY, exag, selected }) {
   };
 
   api.current = { fly, focus, frame };
+  // beim Stadtwechsel (Unmount) Kamera der Stadt merken
+  // (Stadt beim Einhängen festhalten: beim Abbau ist CITY schon die neue Stadt)
+  const city = useRef(CITY.id).current;
+  useEffect(() => () => { if (controls) CAM.set(city, [camera.position.toArray(), controls.target.toArray()]); }, [camera, controls, city]);
   // Prüfhaken für Szenario-Skripte: Kamera, Ziel, Bildlage des gewählten Bahnhofs
   window.__cam = () => {
     const o = { p: camera.position.toArray(), t: controls?.target.toArray() };
@@ -118,6 +126,27 @@ function CameraRig({ api, Y, SY, exag, selected }) {
 const ISO_EL = (60 * Math.PI) / 180; // Neigung der Startansicht
 const ISO_D = 540;                     // Abstand in Einheiten von k (k = Netzausdehnung / 470)
 
+// Startansicht einer Stadt mit eigener Blickrichtung (CITY.start: look = Kompassrichtung des Blicks in Grad,
+// el = Neigung über dem Horizont, fill = Rand): Netz in Blickrichtung gedreht so rahmen, dass es das Bild füllt
+function fitView(stations, { look = 0, el = 55, fill = 1.08 }, ty) {
+  const b = THREE.MathUtils.degToRad(look); const e = THREE.MathUtils.degToRad(el);
+  const fx = Math.sin(b); const fz = -Math.cos(b);            // Blickrichtung (x = Ost, z = Süd)
+  const rx = Math.cos(b); const rz = Math.sin(b);             // rechts davon
+  const us = stations.map((s) => s.x * rx + s.zz * rz); const vs = stations.map((s) => s.x * fx + s.zz * fz);
+  const u0 = Math.min(...us); const u1 = Math.max(...us); const v0 = Math.min(...vs); const v1 = Math.max(...vs);
+  const uc = (u0 + u1) / 2; const vc = (v0 + v1) / 2;
+  const cx = uc * rx + vc * fx; const cz = uc * rz + vc * fz;
+  // Breite ohne die rechte Steuerung (Desktop), Höhe ohne Kopf und Zeitleiste
+  const W = typeof window !== 'undefined' ? window.innerWidth - (window.innerWidth > 980 ? 300 : 0) : 1200;
+  const H = typeof window !== 'undefined' ? window.innerHeight - 160 : 700;
+  const asp = Math.max(0.6, W / Math.max(1, H));
+  const d = (Math.max((u1 - u0) / asp, (v1 - v0) * Math.sin(e)) / (2 * TAN)) * fill;
+  // Ziel um die halbe Steuerungsbreite nach rechts: das Netz steht dann mittig im freien Bildteil
+  const off = typeof window !== 'undefined' && window.innerWidth > 980 ? (150 / window.innerWidth) * 2 * d * TAN * (window.innerWidth / window.innerHeight) : 0;
+  const tx = cx + rx * off; const tz = cz + rz * off;
+  return [[tx - fx * d * Math.cos(e), ty + d * Math.sin(e), tz - fz * d * Math.cos(e)], [tx, ty, tz]];
+}
+
 const Scene = forwardRef(function Scene(props, ref) {
   const { data, view, Y, SY, opts, focusLine, selected, hoverId, labelItems, onHover, onPick, onUserCamera, extent, bg, showBuild } = props;
   const overlay = useRef();
@@ -130,11 +159,11 @@ const Scene = forwardRef(function Scene(props, ref) {
     const ty = -8 * opts.exag;
     return {
       // Startansicht für alle Städte und Stile: von Süden, etwa 60° über dem Horizont, Norden oben
-      iso: [[cx, ty * 0.5 + ISO_D * k * Math.sin(ISO_EL), cz + ISO_D * k * Math.cos(ISO_EL)], [cx, ty * 0.5, cz]],
+      iso: CITY.start ? fitView(data.stations, CITY.start, ty * 0.5) : [[cx, ty * 0.5 + ISO_D * k * Math.sin(ISO_EL), cz + ISO_D * k * Math.cos(ISO_EL)], [cx, ty * 0.5, cz]],
       top: [[cx, 560 * k, cz + 0.1], [cx, 0, cz]],
       below: [[cx - 160 * k, -300 * k, cz + 230 * k], [cx, ty, cz]],
     };
-  }, [extent, opts.exag]);
+  }, [extent, opts.exag, data]);
 
   useImperativeHandle(ref, () => ({
     // Seite: Rahmung der fokussierten Linie bzw. aller sichtbaren Bahnhöfe
@@ -147,7 +176,7 @@ const Scene = forwardRef(function Scene(props, ref) {
   }), [views, view]);
 
   // Startansicht nur einmal setzen: ein neues target-Array bei jeder Überhöhung würde das Kameraziel zurücksetzen
-  const [p0, t0] = useRef(views.iso).current;
+  const [p0, t0] = useRef(CAM.get(CITY.id) || views.iso).current;
 
   return (
     <div className="scene">

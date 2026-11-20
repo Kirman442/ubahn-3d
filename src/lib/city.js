@@ -13,6 +13,7 @@ export const CITIES = [
   {
     id: 'hamburg', name: 'Hamburg', ready: true, data: 'hamburg/', basemap: true,
     origin: { lon: 9.9937, lat: 53.5503 }, h0: 10, startYear: 1910,
+    start: { look: 320, el: 40, fill: 1.6 }, // Blick nach NW: Elbe links, Walddörfer rechts
     // Farben aus den OSM-Routenrelationen (colour), U4 nach HVV-Fahrplan (CMYK 100/0/40/0); ZR = Zweigbahn Rothenburgsort 1915–1943, heute ohne Nummer
     lines: [{ id: 'U1', color: '#006AB3' }, { id: 'U2', color: '#E2001A' }, { id: 'U3', color: '#FFDD00' }, { id: 'U4', color: '#00AAAD' }, { id: 'ZR', color: '#8C8C8C' }],
     // Linien nur im Bau (nicht in der Linienliste): U5 aus der U5-Netzkarte von hamburg.de abgelesen, ungefähr
@@ -24,6 +25,7 @@ export const CITIES = [
   {
     id: 'muenchen', name: 'München', ready: true, data: 'muenchen/', basemap: true,
     origin: { lon: 11.5755, lat: 48.1374 }, h0: 520, startYear: 1971,
+    start: { look: 265, el: 50, fill: 1.5 }, // Blick nach Westen: Garching rechts vorn, Fürstenried hinten
     // MVG-Farben; U7 und U8 sind zweifarbig (Liniensignet diagonal geteilt): color + color2
     lines: [{ id: 'U1', color: '#52822F' }, { id: 'U2', color: '#C20831' }, { id: 'U3', color: '#EC6725' }, { id: 'U4', color: '#00A984' },
       { id: 'U5', color: '#BC7A00' }, { id: 'U6', color: '#0065AE' }, { id: 'U7', color: '#52822F', color2: '#C20831' }, { id: 'U8', color: '#C20831', color2: '#EC6725' }],
