@@ -30,7 +30,7 @@ export const CITIES = [
     attribution: 'Gelände: DGM1 © Bayerische Vermessungsverwaltung, geodaten.bayern.de (CC BY 4.0) · Geschichte und Tiefen: Wikipedia (CC BY-SA 4.0), Wikidata (CC0) · Lage: © OpenStreetMap-Mitwirkende (ODbL)',
   },
   {
-    id: 'nuernberg', name: 'Nürnberg', ready: true, data: 'nuernberg/', tiles: 'nuernberg.pmtiles',
+    id: 'nuernberg', name: 'Nürnberg', ready: true, data: 'nuernberg/', tiles: 'nuernberg.pmtiles', basemap: true,
     origin: { lon: 11.0767, lat: 49.4521 }, h0: 310, startYear: 1970,
     lines: [{ id: 'U1', color: '#0067A6' }, { id: 'U2', color: '#E2001A' }, { id: 'U3', color: '#00A3A0' }],
     dgm: 'DGM1 Bayern', search: 'z. B. Plärrer',
