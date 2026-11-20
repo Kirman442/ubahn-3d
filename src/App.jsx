@@ -154,7 +154,7 @@ function CityApp({ city, choose, opts, setOpts }) {
       focus: !!focusLine && s.line === focusLine, bg: !!focusLine && s.line !== focusLine && !strong,
     });
     const showNames = !(focusLine && !lineNames); // «Namen aus» in der Linienkarte
-    // Gewählte Linie: nur ihre Bahnhöfe (mit Tiefe ihrer Bahnsteige), keine Hintergrundschilder.
+    // Gewählte Linie: nur ihre Bahnhöfe, kompakt wie in der Übersicht (Tiefe im Profil und beim Überfahren), keine Hintergrundschilder.
     // Übersicht: nur Name + Liniensignets, ohne Tiefe (Tiefe beim Überfahren/Wählen); Modus «ab 10 m» behält die Tiefe.
     if (showNames) nodes.forEach((all, node) => {
       if (all.some((s) => strongIds.has(s.id))) return;
@@ -162,7 +162,7 @@ function CityApp({ city, choose, opts, setOpts }) {
       let list = all; let want; let withDepth; let rank = 0; let pri = 0;
       if (focusLine) {
         if (!lines.includes(focusLine)) return;
-        list = all.filter((s) => s.line === focusLine); want = true; withDepth = true;
+        list = all.filter((s) => s.line === focusLine); want = true; withDepth = false; // Tiefe im Profil der Karte und beim Überfahren
       } else {
         const nset = all.map((s) => [...(nbrs[`${s.line}|${s.name}`] || [])].sort().join('|'));
         const key = all.some((s) => (nbrs[`${s.line}|${s.name}`]?.size || 0) <= 1) || new Set(nset).size > 1;
@@ -184,7 +184,7 @@ function CityApp({ city, choose, opts, setOpts }) {
       }
       out.push({ key: `n:${node}`, x: top.x, y: Y(top.z, top.ground), z: top.zz, text: nameAt(top, iso), depth,
         lines: CITY.lines.map((l) => l.id).filter((l) => lines.includes(l)), color: top.color,
-        ghost: list.every((s) => s.state === 'interrupted'), strong: false, focus: !!focusLine, bg: false, compact: !focusLine, rank, pri });
+        ghost: list.every((s) => s.state === 'interrupted'), strong: false, focus: !!focusLine, bg: false, compact: true, rank, pri });
     });
     // «wichtige» geografisch ausdünnen (fest, unabhängig von Kamera und Überlappung): nach Priorität (Linienzahl,
     // Endpunkt) bleibt ein Knoten in Stufe 0, wenn im Umkreis R0 kein wichtigerer liegt; sonst Stufe 1 (Umkreis R1),
