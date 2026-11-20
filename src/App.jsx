@@ -12,7 +12,7 @@ import { depthText, statusShort, isApprox } from './lib/depth';
 import { fmtM } from './lib/colors';
 import { isoForYear, stateAt, sectionOpenAt, interruptionAt, nameAt, formatDate, normDate, yearOf } from './lib/time';
 
-const load = (name) => fetch(`/data/${CITY.data}${name}`, { cache: 'no-cache' }).then((r) => {
+const load = (name) => fetch(`${import.meta.env.BASE_URL}data/${CITY.data}${name}`, { cache: 'no-cache' }).then((r) => {
   if (!r.ok) throw new Error(`${name}: HTTP ${r.status}`);
   return r.json();
 });

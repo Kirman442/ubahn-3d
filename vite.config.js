@@ -10,9 +10,10 @@ const vendor = (id) => {
   return 'vendor';
 };
 
-export default defineConfig({
+// Veröffentlichung auf GitHub Pages unter https://kirman442.github.io/ubahn-3d/ – lokal bleibt die Wurzel '/'
+export default defineConfig(({ command, isPreview }) => ({
   plugins: [react()],
-  base: '/',
+  base: command === 'build' || isPreview ? '/ubahn-3d/' : '/',
   server: { port: 5174, strictPort: false },
   build: { rollupOptions: { output: { manualChunks: vendor } }, chunkSizeWarningLimit: 750 },
-});
+}));

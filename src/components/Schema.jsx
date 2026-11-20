@@ -38,7 +38,7 @@ const CACHE = new Map();
 const loadBasemap = (dir) => {
   if (!CACHE.has(dir)) {
     // Fehlschlag nicht merken: beim nächsten Laden (z. B. «Erneut versuchen», Stadtwechsel) neu anfragen
-    CACHE.set(dir, fetch(`/data/${dir}basemap.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null)
+    CACHE.set(dir, fetch(`${import.meta.env.BASE_URL}data/${dir}basemap.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null)
       .then((d) => { if (!d) CACHE.delete(dir); return d; }));
   }
   return CACHE.get(dir);
