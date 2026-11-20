@@ -165,7 +165,7 @@ const Scene = forwardRef(function Scene(props, ref) {
         <hemisphereLight args={['#ffffff', '#445060', dark ? 0.9 : 1.6]} />
         <directionalLight position={[-20000, 40000, 15000]} intensity={1.4} />
         <directionalLight position={[15000, -30000, -10000]} intensity={0.5} />
-        <Surface extent={extent} kind={opts.surface} opacity={opts.surfOp} depthBottom={(opts.mode === 'abs' ? 15 - H0 : -25) * opts.exag} />
+        <Surface dark={dark} extent={extent} kind={opts.surface} opacity={opts.surfOp} depthBottom={(opts.mode === 'abs' ? 15 - H0 : -25) * opts.exag} />
         <Guides extent={extent} mode={opts.mode} exag={opts.exag} showGrid={opts.grid} showLevels={opts.levels} />
         {opts.mode === 'abs' && opts.grid && <SurfaceTraces sections={data.sections} visible={view.sectionVisible} SY={SY} />}
         {opts.shafts && <Shafts stations={view.stations} Y={Y} SY={SY} />}

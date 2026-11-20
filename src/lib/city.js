@@ -20,7 +20,7 @@ export const CITIES = [
     attribution: 'Gelände: DGM1 © Freie und Hansestadt Hamburg, LGV (dl-de/by-2.0), außerhalb EU-DEM (Copernicus) · Geschichte und Tiefen: Wikipedia (CC BY-SA 4.0), Wikidata (CC0) · Lage: © OpenStreetMap-Mitwirkende (ODbL)',
   },
   {
-    id: 'muenchen', name: 'München', ready: true, data: 'muenchen/', tiles: 'muenchen.pmtiles',
+    id: 'muenchen', name: 'München', ready: true, data: 'muenchen/', tiles: 'muenchen.pmtiles', basemap: true,
     origin: { lon: 11.5755, lat: 48.1374 }, h0: 520, startYear: 1971,
     // MVG-Farben; U7 und U8 sind zweifarbig (Liniensignet diagonal geteilt): color + color2
     lines: [{ id: 'U1', color: '#52822F' }, { id: 'U2', color: '#C20831' }, { id: 'U3', color: '#EC6725' }, { id: 'U4', color: '#00A984' },

@@ -18,7 +18,7 @@ const load = (name) => fetch(`/data/${CITY.data}${name}`, { cache: 'no-cache' })
 
 const saved = (k, fb) => { try { return localStorage.getItem(k) || fb; } catch { return fb; } };
 const START_THEME = saved('ubahn3d.theme', typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dunkel' : 'hell');
-const DEFAULT_OPTS = { theme: START_THEME, style: saved('ubahn3d.style', 'neu'), exag: DEFAULT_EXAG, surface: 'map', surfOp: 0.55, mode: 'rel', color: 'line', labels: 'key', shafts: true, grid: true, levels: true, transfers: true };
+const DEFAULT_OPTS = { theme: START_THEME, style: saved('ubahn3d.style', 'neu'), exag: DEFAULT_EXAG, surface: 'schema', surfOp: 0.55, mode: 'rel', color: 'line', labels: 'key', shafts: true, grid: true, levels: true, transfers: true };
 const cssVar = (n, fb) => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || fb;
 
 // Stadtwahl: Stadt steht in der Adresse (#nuernberg). Beim Wechsel wird die Stadtansicht neu aufgebaut
@@ -80,7 +80,9 @@ function CityApp({ city, choose, opts, setOpts }) {
   const exag = useDeferredValue(opts.exag);
   const Y = useMemo(() => makeY(opts.mode, exag), [opts.mode, exag]);
   // ohne Stadtplan-Kacheln (bisher nur Berlin) → Fläche statt Stadtplan
-  const surfaceKind = opts.surface === 'map' && !CITY.tiles ? 'plain' : opts.surface;
+  // Schema (three.js) nur mit basemap.json, sonst Stadtplan, sonst Fläche
+  const surfaceKind = opts.surface === 'schema' && !CITY.basemap ? (CITY.tiles ? 'map' : 'plain')
+    : opts.surface === 'map' && !CITY.tiles ? 'plain' : opts.surface;
   const SY = useMemo(() => surfaceY(opts.mode, exag), [opts.mode, exag]);
   const bg = useMemo(() => cssVar('--scene', '#E3E7EB'), []);
 
@@ -337,7 +339,7 @@ function CityApp({ city, choose, opts, setOpts }) {
         {tip}
         {info && <ModelInfo exag={opts.exag} onClose={() => setInfo(false)} />}
         {data && (
-          <Panel stats={stats} hiddenLines={hiddenLines} toggleLine={toggleLine} showAll={showAllLines} focusLine={focusLine} onLine={pickLine}
+          <Panel surfaceKind={surfaceKind} stats={stats} hiddenLines={hiddenLines} toggleLine={toggleLine} showAll={showAllLines} focusLine={focusLine} onLine={pickLine}
             stations={view?.stations || []} open={panelOpen} setOpen={showPanel}
             opts={opts} setOpt={setOpt} deepest={deepest} iso={iso} year={year} onStation={(id) => pickStation(id)} />
         )}

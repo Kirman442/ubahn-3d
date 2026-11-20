@@ -6,6 +6,7 @@ import { fromXZ } from '../lib/geo';
 // Схема города на поверхности (как «схема» у 3d-metro): только вода, зелень и главные улицы
 // из berlin.pmtiles, без подписей. Рендерится один раз невидимой картой MapLibre в текстуру.
 import { CITY } from '../lib/city';
+import Schema, { PALETTE } from './Schema';
 const GREEN = ['park', 'forest', 'wood', 'grass', 'cemetery', 'garden', 'nature_reserve', 'golf_course', 'allotments', 'meadow', 'recreation_ground', 'playground'];
 const STYLE = {
   version: 8,
@@ -97,7 +98,7 @@ function planeGeometry(extent, m0, m1, n = 40) {
 
 const EARTH = '#8A6A45';
 
-export default function Surface({ extent, kind, opacity, depthBottom }) {
+export default function Surface({ extent, kind, opacity, depthBottom, dark }) {
   const [tex, setTex] = useState(null);
   const bbox = useMemo(() => {
     const [west, north] = fromXZ(extent.x0, extent.z0); const [east, south] = fromXZ(extent.x1, extent.z1);
@@ -135,12 +136,15 @@ export default function Surface({ extent, kind, opacity, depthBottom }) {
 
   if (kind === 'off') return null;
   const map = kind === 'map' && tex ? tex.t : null;
+  const schema = kind === 'schema';
+  const top = schema ? PALETTE[dark ? 'dunkel' : 'hell'].base : '#D9DDE0';
   return (
     <group>
       {/* сверху: схема города */}
       <mesh geometry={geo} renderOrder={1}>
-        <meshBasicMaterial key={map ? map.uuid : "plain"} map={map} color={map ? '#ffffff' : '#D9DDE0'} transparent opacity={opacity} depthWrite={false} side={THREE.FrontSide} toneMapped={false} />
+        <meshBasicMaterial key={map ? map.uuid : "plain"} map={map} color={map ? '#ffffff' : top} transparent opacity={opacity} depthWrite={false} side={THREE.FrontSide} toneMapped={false} />
       </mesh>
+      {schema && <Schema key={CITY.id} dark={dark} opacity={opacity} extent={extent} />}
       {/* снизу: земляной «потолок» — та же схема, тонированная в цвет грунта */}
       <mesh geometry={geo} renderOrder={1}>
         <meshBasicMaterial key={map ? map.uuid : "plain"} map={map} color={EARTH} transparent opacity={Math.min(1, opacity * 0.85)} depthWrite={false} side={THREE.BackSide} toneMapped={false} />
