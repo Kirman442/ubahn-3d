@@ -13,12 +13,15 @@ const signets = (lines) => (lines || []).map((l) => `<i class="lb${light(LINE_CO
 // kompakte Übersicht: kleine Farbpunkte statt Signetzeile (weniger Fläche, weniger Überlagerung)
 const dots = (lines) => `<span class="lbd">${(lines || []).map((l) => `<i style="background:${lineBg(l)}"></i>`).join('')}</span>`;
 const TARGET = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="5"/><circle cx="8" cy="8" r="1.4" fill="currentColor" stroke="none"/><path d="M8 0.5v3M8 12.5v3M0.5 8h3M12.5 8h3"/></svg>';
+// Zoomstufen für Rang 1/2 als Anteil des Kameraabstands der Startansicht (erster Frame dieser Stadt)
+const ZOOM_RANK = [Infinity, 0.6, 0]; // Rang 2: in «wichtige» nie (zu viel Rauschen)
 const FLOOR_PX = 18; // Abstand der Etagen in Bildschirmpixeln (nicht Meter)
 
 export default function Labels({ items, overlay }) {
   const { camera, size } = useThree();
   const els = useRef([]);
   const v = useMemo(() => new THREE.Vector3(), []);
+  const ref0 = useRef(0);
 
   useEffect(() => {
     const root = overlay.current;
@@ -48,14 +51,17 @@ export default function Labels({ items, overlay }) {
 
   useEffect(() => () => { els.current.forEach((e) => e.el.remove()); els.current = []; }, []);
 
-  useFrame(() => {
+  useFrame((st) => {
     const W = size.width; const H = size.height;
+    const t = st.controls?.target; const cd = t ? camera.position.distanceTo(t) : 0;
+    if (!ref0.current && cd) ref0.current = cd;
     for (const e of els.current) {
       const { it } = e;
       v.set(it.x, it.y, it.z);
       const dist = v.distanceTo(camera.position);
       v.project(camera);
-      const on = v.z < 1 && v.z > -1 && Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1;
+      const zoomOk = !it.rank || !ref0.current || cd < ZOOM_RANK[it.rank] * ref0.current;
+      const on = zoomOk && v.z < 1 && v.z > -1 && Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1;
       if (on !== e.shown) { e.el.style.display = on ? 'block' : 'none'; e.shown = on; }
       if (!on) continue;
       e.el.style.transform = `translate(${(((v.x + 1) / 2) * W).toFixed(1)}px, ${(((1 - v.y) / 2) * H).toFixed(1)}px) ${it.pin ? 'translate(14px, 14px)' : `translate(-50%, -135%) translateY(${-e.lift}px)`}`;

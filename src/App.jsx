@@ -159,7 +159,7 @@ function CityApp({ city, choose, opts, setOpts }) {
     if (showNames) nodes.forEach((all, node) => {
       if (all.some((s) => strongIds.has(s.id))) return;
       const lines = [...new Set(all.map((s) => s.line))];
-      let list = all; let want; let withDepth;
+      let list = all; let want; let withDepth; let rank = 0; let pri = 0;
       if (focusLine) {
         if (!lines.includes(focusLine)) return;
         list = all.filter((s) => s.line === focusLine); want = true; withDepth = true;
@@ -167,6 +167,12 @@ function CityApp({ city, choose, opts, setOpts }) {
         const nset = all.map((s) => [...(nbrs[`${s.line}|${s.name}`] || [])].sort().join('|'));
         const key = all.some((s) => (nbrs[`${s.line}|${s.name}`]?.size || 0) <= 1) || new Set(nset).size > 1;
         want = opts.labels === 'all' || (opts.labels === 'key' && key) || (opts.labels === 'deep' && all.some((s) => s.z <= -DEEP_LABEL));
+        // «wichtige» nach Zoomstufe: Rang 0 immer (wichtigster Knoten im Umkreis, s. u.), Rang 1 (übrige wichtige) beim
+        // Heranzoomen; dicht beieinanderliegende wichtige (Rang 2) nur bei «alle» oder beim Überfahren. Feste Stufen nach Kameraabstand – kein Ein-/Ausblenden nach Überlappung.
+        if (opts.labels === 'key') {
+          const end = all.some((s) => (nbrs[`${s.line}|${s.name}`]?.size || 0) <= 1);
+          rank = 1; pri = lines.length * 10 + (end ? 5 : 0);
+        }
         withDepth = opts.labels === 'deep';
       }
       if (!want) return;
@@ -178,8 +184,18 @@ function CityApp({ city, choose, opts, setOpts }) {
       }
       out.push({ key: `n:${node}`, x: top.x, y: Y(top.z, top.ground), z: top.zz, text: nameAt(top, iso), depth,
         lines: CITY.lines.map((l) => l.id).filter((l) => lines.includes(l)), color: top.color,
-        ghost: list.every((s) => s.state === 'interrupted'), strong: false, focus: !!focusLine, bg: false, compact: !focusLine });
+        ghost: list.every((s) => s.state === 'interrupted'), strong: false, focus: !!focusLine, bg: false, compact: !focusLine, rank, pri });
     });
+    // «wichtige» geografisch ausdünnen (fest, unabhängig von Kamera und Überlappung): nach Priorität (Linienzahl,
+    // Endpunkt) bleibt ein Knoten in Stufe 0, wenn im Umkreis R0 kein wichtigerer liegt; sonst Stufe 1 (Umkreis R1),
+    // sonst Stufe 2. Labels.jsx zeigt Stufe 1/2 erst beim Heranzoomen.
+    if (opts.labels === 'key' && !focusLine) {
+      const R0 = 1800; const R1 = 700; const kept0 = []; const kept1 = [];
+      const near = (list, it, R) => list.some((k) => Math.hypot(k.x - it.x, k.z - it.z) < R);
+      [...out].filter((it) => it.rank === 1).sort((a, b) => b.pri - a.pri).forEach((it) => {
+        if (!near(kept0, it, R0)) { it.rank = 0; kept0.push(it); } else if (!near([...kept0, ...kept1], it, R1)) { kept1.push(it); } else it.rank = 2;
+      });
+    }
     // «Etagen»: nur bei «alle» und in der Linienkarte steht jedes Schild je nach Linie höher, mit Führungsstrich
     const floors = opts.labels === 'all' || !!focusLine;
     const order = CITY.lines.map((l) => l.id);
