@@ -320,3 +320,4 @@ header h1 { font-size: 1.3rem; letter-spacing: -0.01em; color: var(--ink); }
 .lbl .lbs i.lb:last-child { margin-right: 0; }
 .lbl .lbd { display: inline-flex; gap: 2px; margin-right: 4px; vertical-align: 0; }
 .lbl .lbd i { width: 7px; height: 7px; border-radius: 50%; display: inline-block; box-shadow: 0 0 0 1px var(--lbl-bg, #0006); }
+.tip.pin { left: 0; top: 0; will-change: transform; }

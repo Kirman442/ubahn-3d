@@ -31,6 +31,11 @@ export default function Labels({ items, overlay }) {
       e.lift = it.tier ? it.tier * FLOOR_PX : 0;
       e.el.style.setProperty('--lead', `${e.lift}px`);
       e.el.style.setProperty('--c', it.color);
+      if (it.pin) {
+        e.el.className = 'tip pin'; e.lift = 0;
+        e.el.innerHTML = `<b>${it.text}</b><span class="m">${it.depth || ''}</span><br /><span class="muted">${it.pin}</span>`;
+        e.it = it; return e;
+      }
       e.el.innerHTML = `${it.compact ? dots(it.lines) : `<span class="lbs">${signets(it.lines)}</span>`}${it.text}${it.depth ? `<b>${it.depth}</b>` : ''}`;
       e.it = it;
       return e;
@@ -51,7 +56,7 @@ export default function Labels({ items, overlay }) {
       const on = v.z < 1 && v.z > -1 && Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1;
       if (on !== e.shown) { e.el.style.display = on ? 'block' : 'none'; e.shown = on; }
       if (!on) continue;
-      e.el.style.transform = `translate(${(((v.x + 1) / 2) * W).toFixed(1)}px, ${(((1 - v.y) / 2) * H).toFixed(1)}px) translate(-50%, -135%) translateY(${-e.lift}px)`;
+      e.el.style.transform = `translate(${(((v.x + 1) / 2) * W).toFixed(1)}px, ${(((1 - v.y) / 2) * H).toFixed(1)}px) ${it.pin ? 'translate(14px, 14px)' : `translate(-50%, -135%) translateY(${-e.lift}px)`}`;
       // Stapelung nach Priorität: gewählt/überfahren → untersuchte Linie → Hintergrund; innerhalb: näher liegt oben
       e.el.style.zIndex = String(it.strong ? 300000 : (it.focus ? 200000 : 100000) - Math.min(99999, Math.round(dist / 5)));
     }

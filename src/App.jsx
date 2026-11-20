@@ -145,6 +145,8 @@ function CityApp({ city, choose, opts, setOpts }) {
     const one = (s, strong) => ({
       key: s.id, x: s.x, y: Y(s.z, s.ground), z: s.zz, text: nameAt(s, iso), depth: depthText(s), lines: [s.line],
       color: s.color, ghost: s.state === 'interrupted', strong,
+      // gewählter Bahnhof: dieselbe Blase wie beim Überfahren, am Punkt festgehalten
+      pin: strong ? `${s.line} · ${statusShort(s)} · ≈ ${Math.round(s.abs)} m ü. NHN${s.state === 'interrupted' ? ' · ohne Halt' : ''}` : null,
       focus: !!focusLine && s.line === focusLine, bg: !!focusLine && s.line !== focusLine && !strong,
     });
     const showNames = !(focusLine && !lineNames); // «Namen aus» in der Linienkarte
