@@ -255,6 +255,7 @@ header h1 { font-size: 1.3rem; letter-spacing: -0.01em; color: var(--ink); }
 .card .note, .note { background: var(--chip); color: var(--muted); }
 .tip { background: var(--glass-strong); backdrop-filter: blur(16px); border: 1px solid var(--glass-edge); color: var(--ink); border-radius: 10px; }
 .views-hint, .panel .hint, .card .hint, .scope { display: none; }
+.panel .hint.show { display: block; }
 .panel #exag-hint { display: block; }
 .card .legend-mini[aria-label] { display: none; }
 .time .play { background: var(--accent); color: #fff; }

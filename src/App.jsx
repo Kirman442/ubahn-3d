@@ -325,8 +325,8 @@ function CityApp({ city, choose, opts, setOpts }) {
       const s = hover.st;
       tip = (
         <div className="tip" style={pos}>
-          <b>{s.name}</b><span className="m">{s.z == null ? '' : `${s.measured ? '' : '≈ '}${fmtM(s.z)} m`}</span><br />
-          <span className="muted">{s.line} · im Bau · Eröffnung geplant {s.opening || '?'} · {s.guessed ? 'Tiefe unbekannt' : s.measured ? 'Tiefe laut Planung' : 'Tiefe geschätzt'}</span>
+          <b>{s.name}</b><span className="m">{s.z == null || s.guessed ? '' : `${s.measured ? '' : '≈ '}${fmtM(s.z)} m`}</span><br />
+          <span className="muted">{s.line} · im Bau · Eröffnung geplant {s.opening || '?'} · {s.guessed ? 'Tiefe unbekannt, Darstellung auf fortgeführter Modellhöhe' : s.measured ? 'Tiefe laut Planung' : 'Tiefe geschätzt'}</span>
         </div>
       );
     } else if (hover.kind === 'line') {

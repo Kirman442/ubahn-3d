@@ -97,7 +97,7 @@ export default function Panel(p) {
           </li>
         )}
       </ul>
-      {build && !build.now && opts.build && <p className="hint small">Strecken im Bau erscheinen beim Netzstand {END_YEAR}.</p>}
+      {build && !build.now && opts.build && <p className="hint small show">Strecken im Bau erscheinen beim Netzstand {END_YEAR}.</p>}
       {stats.ghost > 0 && CITY.id === 'berlin' && (
         <div className="ghost-note"><span className="ring" aria-hidden="true" />
           <p><b>{stats.ghost} Geisterbahnhöfe</b> – Züge aus West-Berlin fuhren unter Ost-Berlin ohne Halt durch (1961–1990).</p></div>
