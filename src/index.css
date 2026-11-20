@@ -180,7 +180,11 @@ details.src .facts { margin-top: 4px; }
 .results .d, .stlist .m { margin-left: auto; font-family: ui-monospace, Consolas, monospace; font-size: 0.75rem; color: var(--muted); }
 .deep button { min-height: 26px; }
 details.darst { margin-top: 12px; border-top: 1px solid var(--rule); padding-top: 6px; }
-details.darst > summary { cursor: pointer; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 700; min-height: 26px; display: flex; align-items: center; }
+details.darst > summary { cursor: pointer; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink); font-weight: 700; min-height: 32px; display: flex; align-items: center; justify-content: space-between; list-style: none; padding: 4px 8px; margin: 0 -8px; border-radius: 6px; }
+details.darst > summary::-webkit-details-marker { display: none; }
+details.darst > summary::after { content: ''; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); margin: -3px 4px 0 0; transition: transform 0.15s; }
+details.darst[open] > summary::after { transform: rotate(-135deg); margin-top: 3px; }
+details.darst > summary:hover { background: var(--rule); }
 details.stlist { margin: 6px 0; font-size: 0.78rem; }
 details.stlist summary { cursor: pointer; color: var(--accent); min-height: 26px; display: flex; align-items: center; }
 details.stlist ol { margin: 4px 0; padding-left: 22px; max-height: 200px; overflow-y: auto; }

@@ -29,6 +29,24 @@ export default function TimeControl({ year, setYear, playing, setPlaying, firstY
     if (!playing && year >= END_YEAR) setYear(firstYear || START_YEAR);
     setPlaying(!playing);
   };
+  // − / +: einmal tippen = ein Jahr; halten = wiederholen (nach 400 ms, dann schneller)
+  const hold = useRef(null);
+  const yearRef = useRef(year); yearRef.current = year;
+  const stopHold = () => { clearTimeout(hold.current); hold.current = null; };
+  const startHold = (d) => (e) => {
+    if (e.button !== undefined && e.button !== 0) return;
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    setPlaying(false);
+    let n = 0;
+    const tick = () => {
+      const v = clamp(yearRef.current + d);
+      if (v === yearRef.current) { stopHold(); return; }
+      yearRef.current = v; setYear(v);
+      n++; hold.current = setTimeout(tick, n === 1 ? 400 : n < 15 ? 90 : 40);
+    };
+    stopHold(); tick();
+  };
+  useEffect(() => stopHold, []);
   const commit = () => { const v = parseInt(draft, 10); if (Number.isFinite(v)) go(v); else setDraft(String(year)); };
 
   return (
@@ -49,10 +67,12 @@ export default function TimeControl({ year, setYear, playing, setPlaying, firstY
         <p className="time-cap" id="time-cap">Netzstand Ende {year}<span className="cap2"> · heutiger Stadtplan</span></p>
       </div>
       <div className="year-box">
-        <button type="button" className="step" onClick={() => go(year - 1)} aria-label="Ein Jahr zurück" disabled={year <= START_YEAR}>−</button>
+        <button type="button" className="step" onPointerDown={startHold(-1)} onPointerUp={stopHold} onPointerCancel={stopHold} onLostPointerCapture={stopHold}
+          onClick={(e) => { if (e.detail === 0) go(year - 1); }} aria-label="Ein Jahr zurück" disabled={year <= START_YEAR}>−</button>
         <input className="year" type="number" inputMode="numeric" min={START_YEAR} max={END_YEAR} value={draft} aria-label="Jahr eingeben"
           onChange={(e) => setDraft(e.target.value)} onBlur={commit} onKeyDown={(e) => { if (e.key === 'Enter') commit(); }} />
-        <button type="button" className="step" onClick={() => go(year + 1)} aria-label="Ein Jahr vor" disabled={year >= END_YEAR}>+</button>
+        <button type="button" className="step" onPointerDown={startHold(1)} onPointerUp={stopHold} onPointerCancel={stopHold} onLostPointerCapture={stopHold}
+          onClick={(e) => { if (e.detail === 0) go(year + 1); }} aria-label="Ein Jahr vor" disabled={year >= END_YEAR}>+</button>
       </div>
     </div>
   );

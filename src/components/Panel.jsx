@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { DEEP_LABEL } from '../lib/config';
 import { CITY, lineBg } from '../lib/city';
 import { RAMP_CSS } from '../lib/colors';
@@ -48,6 +48,9 @@ function StationSearch({ stations, iso, year, onStation }) {
 }
 
 export default function Panel(p) {
+  // «Darstellung» standardmäßig offen; Zustand je Betrachter merken
+  const [darstOpen, setDarstOpen] = useState(() => { try { return localStorage.getItem('ubahn3d.darst') !== '0'; } catch { return true; } });
+  useEffect(() => { try { localStorage.setItem('ubahn3d.darst', darstOpen ? '1' : '0'); } catch { /* ohne Speicher */ } }, [darstOpen]);
   const { surfaceKind, stats, hiddenLines, toggleLine, showAll, focusLine, onLine, opts, setOpt, deepest, iso, year, onStation, stations, open, setOpen } = p;
   const md = stats.maxDepthSt;
   return (
@@ -116,7 +119,7 @@ export default function Panel(p) {
         ? 'Tiefe relativ zum lokalen Geländeniveau am Bahnhof (Modell, DGM1 geglättet) – nicht der Abstand zur Straße direkt über jedem Tunnelpunkt.'
         : 'Absolute Höhen über Normalhöhennull. Die Kartenfläche bleibt eben (schematisch); ein positiver NHN-Wert heißt nicht «über der Straße».'}</p>
 
-      <details className="darst">
+      <details className="darst" open={darstOpen} onToggle={(e) => setDarstOpen(e.currentTarget.open)}>
         <summary>Darstellung</summary>
       <h2 id="h-style">Stil der Szene</h2>
       <Seg value={opts.style} labelledby="h-style" set={(v) => setOpt('style', v)} options={[['neu', 'Erdreich'], ['klassisch', 'Klassisch']]} />
@@ -126,7 +129,7 @@ export default function Panel(p) {
       {opts.surface !== 'off' && (
         <input className="range" type="range" min={0.1} max={1} step={0.05} value={opts.surfOp} onChange={(e) => setOpt('surfOp', Number(e.target.value))} aria-label="Deckkraft der Oberfläche" />
       )}
-      <p className="hint small">Von oben: Stadtplan · von unten: Erdreich (braun)</p>
+      <p className="hint small">Von oben: Stadtschema · von unten: Erdreich (braun)</p>
 
       <h2 id="h-color">Farbe</h2>
       <Seg value={opts.color} set={(v) => setOpt('color', v)} labelledby="h-color" options={[['line', 'nach Linie'], ['depth', 'nach Tiefe']]} />
