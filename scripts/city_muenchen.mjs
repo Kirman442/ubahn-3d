@@ -6,6 +6,7 @@
 // Linien, die jemals denselben Tunnelabschnitt befahren, liegen zur Lesbarkeit um SP m nebeneinander (Darstellung).
 import fs from 'node:fs';
 import path from 'node:path';
+import { buildConstruction } from './construction.mjs';
 
 const SRC = process.argv[2] || path.resolve('../../München');
 const OUT = path.resolve('public/data/muenchen');
@@ -147,7 +148,11 @@ for (const st of stations) { const j = junc[`${st.line}|${st.name}`]; if (j) { s
 for (const f of props) { const j = junc[`${f.properties.line}|${f.properties.name}`]; if (j) f.geometry.coordinates = [+j.lon.toFixed(7), +j.lat.toFixed(7)]; }
 console.log(`Röhrenenden angeglichen: ${moved}`);
 
+// Baustellen U5 Laimer Platz – Pasing, U6 Klinikum Großhadern – Martinsried (Tiefen dort positiv nach unten)
+const { construction, constructionStations } = fs.existsSync(path.join(SRC, 'network/construction.geojson'))
+  ? buildConstruction(rd('network/construction.geojson'), stations, { MX, MY, sign: -1 }) : { construction: [], constructionStations: [] };
+
 fs.mkdirSync(OUT, { recursive: true });
-fs.writeFileSync(path.join(OUT, 'network3d.json'), JSON.stringify({ stations, sections }));
+fs.writeFileSync(path.join(OUT, 'network3d.json'), JSON.stringify({ stations, sections, construction, constructionStations }));
 fs.writeFileSync(path.join(OUT, 'stations.geojson'), JSON.stringify({ type: 'FeatureCollection', features: props }));
 console.log(`Bahnhofseinträge ${stations.length}, Röhren ${sections.length}`);

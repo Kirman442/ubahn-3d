@@ -26,7 +26,7 @@ export const CITIES = [
     lines: [{ id: 'U1', color: '#52822F' }, { id: 'U2', color: '#C20831' }, { id: 'U3', color: '#EC6725' }, { id: 'U4', color: '#00A984' },
       { id: 'U5', color: '#BC7A00' }, { id: 'U6', color: '#0065AE' }, { id: 'U7', color: '#52822F', color2: '#C20831' }, { id: 'U8', color: '#C20831', color2: '#EC6725' }],
     dgm: 'DGM1 Bayern', search: 'z. B. Marienplatz',
-    note: 'Gemessen sind nur 18 Bahnhofstiefen; die übrigen sind aus Bahnsteigebene (OSM/Wikipedia) geschätzt, die Trasse dazwischen aus Gelände und Bauregeln. Linien, die sich einen Tunnel teilen (Stammstrecken), sind nebeneinander gezeichnet – nur zur Lesbarkeit. Liniennummern nach Betriebsperioden (z. B. U8 1980–1988, heute U2); Farben nach heutiger Nummer.',
+    note: 'Gemessen sind nur 18 Bahnhofstiefen; die übrigen sind aus Bahnsteigebene (OSM/Wikipedia) geschätzt, die Trasse dazwischen aus Gelände und Bauregeln. Linien, die sich einen Tunnel teilen (Stammstrecken), sind nebeneinander gezeichnet – nur zur Lesbarkeit. Liniennummern nach Betriebsperioden (z. B. U8 1980–1988, heute U2); Farben nach heutiger Nummer. Gestrichelt: im Bau – U5 Laimer Platz – Pasing (2030/2034) und U6 Klinikum Großhadern – Martinsried (2027); für Am Knie und Pasing ist keine Tiefe bekannt, dort gilt die von Baumschule Laim.',
     attribution: 'Gelände: DGM1 © Bayerische Vermessungsverwaltung, geodaten.bayern.de (CC BY 4.0) · Geschichte und Tiefen: Wikipedia (CC BY-SA 4.0), Wikidata (CC0) · Lage: © OpenStreetMap-Mitwirkende (ODbL)',
   },
   {

@@ -6,6 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { joinEnds } from './join_ends.mjs';
+import { buildConstruction } from './construction.mjs';
 
 const SRC = process.argv[2] || path.resolve('../../Hamburg');
 const OUT = path.resolve('public/data/hamburg');
@@ -59,33 +60,9 @@ for (const s of net.stations) {
     situation: r.situation, district: r.district, wiki_de: r.wiki_de, wikidata: r.wikidata, depth_m: -s.z } });
 }
 
-// Baustellen (U4 Horner Geest, U5 Bramfeld – City Nord) aus network/construction.geojson, nur Darstellung:
-// Tiefe linear über die Länge von depth_from_m nach depth_to_m, Gelände linear zwischen den Endbahnhöfen
-let construction = []; let constructionStations = [];
-if (fs.existsSync(path.join(SRC, 'network/construction.geojson'))) {
-  const cons = rd('network/construction.geojson');
-  const pts = cons.features.filter((f) => f.geometry.type === 'Point');
-  const gnd = (line, name) => (pts.find((f) => f.properties.line === line && f.properties.name === name) || {}).properties?.ground_dgm1_m;
-  construction = cons.features.filter((f) => f.geometry.type === 'LineString').map((f) => {
-    const p = f.properties; const c = f.geometry.coordinates;
-    const d = [0]; for (let k = 1; k < c.length; k++) d.push(d[k - 1] + Math.hypot((c[k][0] - c[k - 1][0]) * MX, (c[k][1] - c[k - 1][1]) * MY));
-    const L = d[d.length - 1] || 1;
-    // Endet die Baustelle an einem bestehenden Bahnhof, gelten dessen Tiefe und Gelände aus dem Netz (sonst Sprung am Anschluss)
-    const ex = (name) => stations.find((x) => x.line === p.line && x.name === name) || stations.find((x) => x.name === name);
-    const A = ex(p.from); const B = ex(p.to);
-    const z0 = A ? A.z : p.depth_from_m; const z1 = B ? B.z : p.depth_to_m;
-    const g0 = A ? A.ground : gnd(p.line, p.from); const g1 = B ? B.ground : gnd(p.line, p.to);
-    if (A && Math.abs(A.z - p.depth_from_m) > 0.5) console.log(`Anschluss ${p.line} ${p.from}: Netz ${A.z} m statt ${p.depth_from_m} m`);
-    if (B && Math.abs(B.z - p.depth_to_m) > 0.5) console.log(`Anschluss ${p.line} ${p.to}: Netz ${B.z} m statt ${p.depth_to_m} m`);
-    const lerp = (a, b, t) => +(a + (b - a) * t).toFixed(2);
-    return { line: p.line, from: p.from, to: p.to, opening: p.expected_opening,
-      xyz: c.map(([lon, lat], k) => [lon, lat, lerp(z0, z1, d[k] / L)]),
-      g: c.map((_, k) => lerp(g0 ?? g1, g1 ?? g0, d[k] / L)) };
-  });
-  // Bestehende Bahnhöfe (Horner Rennbahn, Sengelmannstraße) sind schon im Netz
-  constructionStations = pts.filter((f) => !/^bestehend/.test(f.properties.status)).map((f) => ({ name: f.properties.name, line: f.properties.line,
-    lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], z: f.properties.depth_m, ground: f.properties.ground_dgm1_m, opening: f.properties.expected_opening }));
-}
+// Baustellen (U4 Horner Geest, U5 Bramfeld – City Nord), siehe construction.mjs
+const { construction, constructionStations } = fs.existsSync(path.join(SRC, 'network/construction.geojson'))
+  ? buildConstruction(rd('network/construction.geojson'), stations, { MX, MY, sign: 1 }) : { construction: [], constructionStations: [] };
 
 fs.mkdirSync(OUT, { recursive: true });
 // Röhrenenden je Linie und Bahnhof zusammenführen (seitlicher Versatz gemeinsamer Tunnel ohne Sprung)
