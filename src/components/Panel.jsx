@@ -95,34 +95,11 @@ export default function Panel(p) {
           <p><b>{stats.closedNoStop}</b> {stats.closedNoStop === 1 ? 'Bahnhof' : 'Bahnhöfe'} vorübergehend ohne Halt (stillgelegt).</p></div>
       )}
 
-      {deepest.length > 0 && (
-        <>
-          <h2 id="h-deep">Tiefste Bahnhöfe (Tunnel)</h2>
-          <ol className="deep" aria-labelledby="h-deep">
-            {deepest.map((s) => (
-              <li key={s.id}><button type="button" onClick={() => onStation(s.id)} style={{ '--c': s.color }}
-                aria-label={`${nameAt(s, iso)}, ${s.line}, ${depthText(s)}`}>
-                <span className="badge sm" style={{ background: lineBg(s.line, s.color) }}>{s.line}</span><span>{nameAt(s, iso)}</span><span className="d">{depthText(s)}</span>
-              </button></li>
-            ))}
-          </ol>
-          <p className="hint small">Nur Tunnelbahnhöfe · Tiefe unter lokalem Geländeniveau wie auf der Karte · ohne ≈: Zahl aus Quelle · ≈: «ca.»/«rund» in der Quelle, abgeleitet oder Modellschätzung</p>
-        </>
-      )}
-      <h2 id="h-exag">Überhöhung <output>×{opts.exag}</output></h2>
-      <input className="range" type="range" min={1} max={200} step={1} value={opts.exag} onChange={(e) => setOpt('exag', Number(e.target.value))} aria-label="Vertikale Überhöhung" aria-describedby="exag-hint" />
-      <p className="hint small" id="exag-hint">Höhen {opts.exag}-fach vergrößert, Meterangaben echt.</p>
+      <h2 id="h-names">Namen</h2>
+      <Seg value={opts.labels} labelledby="h-names" set={(v) => setOpt('labels', v)} options={[['none', 'keine'], ['key', 'wichtige'], ['deep', `ab ${DEEP_LABEL} m`], ['all', 'alle']]} />
+      {opts.labels === 'deep' && <p className="hint small">Bahnhöfe mit mindestens einer Ebene ab {DEEP_LABEL} m Tiefe.</p>}
+      <p className="hint small">Gewählter Bahnhof und Bahnhöfe der untersuchten Linie werden immer benannt, auch bei «keine». Namen dürfen sich überlagern; der gewählte liegt oben.</p>
 
-      <h2 id="h-mode">Höhe</h2>
-      <Seg value={opts.mode} set={(v) => setOpt('mode', v)} labelledby="h-mode" options={[['rel', 'Tiefe unter Gelände'], ['abs', 'ü. NHN']]} />
-      <p className="hint small">{opts.mode === 'rel'
-        ? 'Tiefe relativ zum lokalen Geländeniveau am Bahnhof (Modell, DGM1 geglättet) – nicht der Abstand zur Straße direkt über jedem Tunnelpunkt.'
-        : 'Absolute Höhen über Normalhöhennull. Die Kartenfläche bleibt eben (schematisch); ein positiver NHN-Wert heißt nicht «über der Straße».'}</p>
-
-      <details className="darst" open={darstOpen} onToggle={(e) => setDarstOpen(e.currentTarget.open)}>
-        <summary>Darstellung</summary>
-      <h2 id="h-style">Stil der Szene</h2>
-      <Seg value={opts.style} labelledby="h-style" set={(v) => setOpt('style', v)} options={[['neu', 'Erdreich'], ['klassisch', 'Klassisch']]} />
       <h2 id="h-surf">Oberfläche {opts.surface !== 'off' && <output>{Math.round(opts.surfOp * 100)} %</output>}</h2>
       <Seg value={surfaceKind} set={(v) => setOpt('surface', v)} labelledby="h-surf"
         options={[CITY.basemap && ['schema', 'Schema'], ['plain', 'Fläche'], ['off', 'aus']].filter(Boolean)} />
@@ -142,11 +119,34 @@ export default function Panel(p) {
         </div>
       )}
 
-      <h2 id="h-names">Namen</h2>
-      <Seg value={opts.labels} labelledby="h-names" set={(v) => setOpt('labels', v)} options={[['none', 'keine'], ['key', 'wichtige'], ['deep', `ab ${DEEP_LABEL} m`], ['all', 'alle']]} />
-      {opts.labels === 'deep' && <p className="hint small">Bahnhöfe mit mindestens einer Ebene ab {DEEP_LABEL} m Tiefe.</p>}
-      <p className="hint small">Gewählter Bahnhof und Bahnhöfe der untersuchten Linie werden immer benannt, auch bei «keine». Namen dürfen sich überlagern; der gewählte liegt oben.</p>
+      {deepest.length > 0 && (
+        <>
+          <h2 id="h-deep">Tiefste Bahnhöfe (Tunnel)</h2>
+          <ol className="deep" aria-labelledby="h-deep">
+            {deepest.map((s) => (
+              <li key={s.id}><button type="button" onClick={() => onStation(s.id)} style={{ '--c': s.color }}
+                aria-label={`${nameAt(s, iso)}, ${s.line}, ${depthText(s)}`}>
+                <span className="badge sm" style={{ background: lineBg(s.line, s.color) }}>{s.line}</span><span>{nameAt(s, iso)}</span><span className="d">{depthText(s)}</span>
+              </button></li>
+            ))}
+          </ol>
+          <p className="hint small">Nur Tunnelbahnhöfe · Tiefe unter lokalem Geländeniveau wie auf der Karte · ohne ≈: Zahl aus Quelle · ≈: «ca.»/«rund» in der Quelle, abgeleitet oder Modellschätzung</p>
+        </>
+      )}
+      <h2 id="h-mode">Höhe</h2>
+      <Seg value={opts.mode} set={(v) => setOpt('mode', v)} labelledby="h-mode" options={[['rel', 'Tiefe unter Gelände'], ['abs', 'ü. NHN']]} />
+      <p className="hint small">{opts.mode === 'rel'
+        ? 'Tiefe relativ zum lokalen Geländeniveau am Bahnhof (Modell, DGM1 geglättet) – nicht der Abstand zur Straße direkt über jedem Tunnelpunkt.'
+        : 'Absolute Höhen über Normalhöhennull. Die Kartenfläche bleibt eben (schematisch); ein positiver NHN-Wert heißt nicht «über der Straße».'}</p>
 
+      <h2 id="h-exag">Überhöhung <output>×{opts.exag}</output></h2>
+      <input className="range" type="range" min={1} max={200} step={1} value={opts.exag} onChange={(e) => setOpt('exag', Number(e.target.value))} aria-label="Vertikale Überhöhung" aria-describedby="exag-hint" />
+      <p className="hint small" id="exag-hint">Höhen {opts.exag}-fach vergrößert, Meterangaben echt.</p>
+
+      <details className="darst" open={darstOpen} onToggle={(e) => setDarstOpen(e.currentTarget.open)}>
+        <summary>Darstellung</summary>
+      <h2 id="h-style">Stil der Szene</h2>
+      <Seg value={opts.style} labelledby="h-style" set={(v) => setOpt('style', v)} options={[['neu', 'Erdreich'], ['klassisch', 'Klassisch']]} />
       <h2 id="h-layers">Ebenen</h2>
       <div className="checks" role="group" aria-labelledby="h-layers">
         <label><input type="checkbox" checked={opts.shafts} onChange={(e) => setOpt('shafts', e.target.checked)} /> Verbindung zum Gelände</label>
