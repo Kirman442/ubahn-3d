@@ -79,10 +79,9 @@ function CityApp({ city, choose, opts, setOpts }) {
   const iso = isoForYear(year);
   const exag = useDeferredValue(opts.exag);
   const Y = useMemo(() => makeY(opts.mode, exag), [opts.mode, exag]);
-  // ohne Stadtplan-Kacheln (bisher nur Berlin) → Fläche statt Stadtplan
-  // Schema (three.js) nur mit basemap.json, sonst Stadtplan, sonst Fläche
-  const surfaceKind = opts.surface === 'schema' && !CITY.basemap ? (CITY.tiles ? 'map' : 'plain')
-    : opts.surface === 'map' && !CITY.tiles ? 'plain' : opts.surface;
+  // Schema (three.js) nur mit basemap.json, sonst Fläche; alter Wert «map» (Stadtplan) → Schema
+  const surf = opts.surface === 'map' ? 'schema' : opts.surface;
+  const surfaceKind = surf === 'schema' && !CITY.basemap ? 'plain' : surf;
   const SY = useMemo(() => surfaceY(opts.mode, exag), [opts.mode, exag]);
   const bg = useMemo(() => cssVar('--scene', '#E3E7EB'), []);
 

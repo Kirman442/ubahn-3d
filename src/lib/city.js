@@ -5,13 +5,13 @@ import { LINES as BERLIN_LINES } from './config';
 
 export const CITIES = [
   {
-    id: 'berlin', name: 'Berlin', ready: true, data: '', tiles: 'berlin.pmtiles', basemap: true,
+    id: 'berlin', name: 'Berlin', ready: true, data: '', basemap: true,
     origin: { lon: 13.4014, lat: 52.5109 }, h0: 35, startYear: 1900, lines: BERLIN_LINES,
     dgm: 'DGM1 Berlin', search: 'z. B. Hermannplatz',
     attribution: 'Gelände: DGM1 © Geoportal Berlin (dl-de/zero-2-0) · Tiefen: Wikipedia (CC BY-SA 4.0) · Karte: OpenStreetMap-Mitwirkende',
   },
   {
-    id: 'hamburg', name: 'Hamburg', ready: true, data: 'hamburg/', tiles: 'hamburg.pmtiles', basemap: true,
+    id: 'hamburg', name: 'Hamburg', ready: true, data: 'hamburg/', basemap: true,
     origin: { lon: 9.9937, lat: 53.5503 }, h0: 10, startYear: 1910,
     // Farben aus den OSM-Routenrelationen (colour); ZR = Zweigbahn Rothenburgsort 1915–1943, heute ohne Nummer
     lines: [{ id: 'U1', color: '#006AB3' }, { id: 'U2', color: '#E2001A' }, { id: 'U3', color: '#FFDD00' }, { id: 'U4', color: '#256D7B' }, { id: 'ZR', color: '#8C8C8C' }],
@@ -20,7 +20,7 @@ export const CITIES = [
     attribution: 'Gelände: DGM1 © Freie und Hansestadt Hamburg, LGV (dl-de/by-2.0), außerhalb EU-DEM (Copernicus) · Geschichte und Tiefen: Wikipedia (CC BY-SA 4.0), Wikidata (CC0) · Lage: © OpenStreetMap-Mitwirkende (ODbL)',
   },
   {
-    id: 'muenchen', name: 'München', ready: true, data: 'muenchen/', tiles: 'muenchen.pmtiles', basemap: true,
+    id: 'muenchen', name: 'München', ready: true, data: 'muenchen/', basemap: true,
     origin: { lon: 11.5755, lat: 48.1374 }, h0: 520, startYear: 1971,
     // MVG-Farben; U7 und U8 sind zweifarbig (Liniensignet diagonal geteilt): color + color2
     lines: [{ id: 'U1', color: '#52822F' }, { id: 'U2', color: '#C20831' }, { id: 'U3', color: '#EC6725' }, { id: 'U4', color: '#00A984' },
@@ -30,7 +30,7 @@ export const CITIES = [
     attribution: 'Gelände: DGM1 © Bayerische Vermessungsverwaltung, geodaten.bayern.de (CC BY 4.0) · Geschichte und Tiefen: Wikipedia (CC BY-SA 4.0), Wikidata (CC0) · Lage: © OpenStreetMap-Mitwirkende (ODbL)',
   },
   {
-    id: 'nuernberg', name: 'Nürnberg', ready: true, data: 'nuernberg/', tiles: 'nuernberg.pmtiles', basemap: true,
+    id: 'nuernberg', name: 'Nürnberg', ready: true, data: 'nuernberg/', basemap: true,
     origin: { lon: 11.0767, lat: 49.4521 }, h0: 310, startYear: 1970,
     lines: [{ id: 'U1', color: '#0067A6' }, { id: 'U2', color: '#E2001A' }, { id: 'U3', color: '#00A3A0' }],
     dgm: 'DGM1 Bayern', search: 'z. B. Plärrer',

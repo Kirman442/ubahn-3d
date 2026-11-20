@@ -122,7 +122,7 @@ export default function Panel(p) {
       <Seg value={opts.style} labelledby="h-style" set={(v) => setOpt('style', v)} options={[['neu', 'Erdreich'], ['klassisch', 'Klassisch']]} />
       <h2 id="h-surf">Oberfläche {opts.surface !== 'off' && <output>{Math.round(opts.surfOp * 100)} %</output>}</h2>
       <Seg value={surfaceKind} set={(v) => setOpt('surface', v)} labelledby="h-surf"
-        options={[CITY.basemap && ['schema', 'Schema'], CITY.tiles && ['map', 'Stadtplan'], ['plain', 'Fläche'], ['off', 'aus']].filter(Boolean)} />
+        options={[CITY.basemap && ['schema', 'Schema'], ['plain', 'Fläche'], ['off', 'aus']].filter(Boolean)} />
       {opts.surface !== 'off' && (
         <input className="range" type="range" min={0.1} max={1} step={0.05} value={opts.surfOp} onChange={(e) => setOpt('surfOp', Number(e.target.value))} aria-label="Deckkraft der Oberfläche" />
       )}
