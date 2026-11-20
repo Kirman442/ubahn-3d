@@ -5,7 +5,7 @@ import { LINES as BERLIN_LINES } from './config';
 
 export const CITIES = [
   {
-    id: 'berlin', name: 'Berlin', ready: true, data: '', tiles: 'berlin.pmtiles',
+    id: 'berlin', name: 'Berlin', ready: true, data: '', tiles: 'berlin.pmtiles', basemap: true,
     origin: { lon: 13.4014, lat: 52.5109 }, h0: 35, startYear: 1900, lines: BERLIN_LINES,
     dgm: 'DGM1 Berlin', search: 'z. B. Hermannplatz',
     attribution: 'Gelände: DGM1 © Geoportal Berlin (dl-de/zero-2-0) · Tiefen: Wikipedia (CC BY-SA 4.0) · Karte: OpenStreetMap-Mitwirkende',
