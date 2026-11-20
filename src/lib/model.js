@@ -107,7 +107,7 @@ export function lineProfile(chain, stations) {
     const s = e.s;
     const P = e.rev ? [...s.pts].reverse() : s.pts;
     const D = e.rev ? s.dist.map((d) => s.length_m - d).reverse() : s.dist;
-    P.forEach((p, j) => { if (k && !j) return; pts.push([off + D[j], p.gd, p.g + p.z]); });
+    P.forEach((p, j) => { if (k && !j) return; pts.push([off + D[j], p.g, p.g + p.z]); }); // geglättetes Gelände (Rohwerte haben Lücken, z. B. Hamburg)
     const from = e.rev ? s.to : s.from;
     if (!k) marks.push({ name: from, d: off });
     off += s.length_m;

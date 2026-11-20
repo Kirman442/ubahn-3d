@@ -3,7 +3,7 @@ import { CITIES } from '../lib/city';
 
 // Impressum und Datenschutz als modales Fenster mit Umschalter. Inhalt passt zur App, wie sie gebaut ist:
 // statische Seite, keine Cookies, kein Tracking, keine Drittanbieter-Schriften/-Skripte; localStorage nur für Einstellungen.
-// Anschrift fehlt noch (Pflichtangabe nach § 5 DDG) – bis dahin sichtbar markiert.
+// Anschrift (§ 5 DDG) auf Wunsch vorerst weggelassen; bei Bedarf in ANSCHRIFT eintragen.
 const NAME = 'Kirill Lisochenko';
 const ANSCHRIFT = null; // z. B. ['Musterstraße 1', '12345 Musterstadt']
 const MAIL = 'k.lisochenko@web.de';
@@ -11,7 +11,7 @@ const STAND = 'November 2026';
 
 const Addr = () => (
   <p>{NAME}<br />
-    {ANSCHRIFT ? ANSCHRIFT.map((l) => <span key={l}>{l}<br /></span>) : <span className="todo">[Straße und Hausnummer, PLZ Ort]<br /></span>}
+    {ANSCHRIFT && ANSCHRIFT.map((l) => <span key={l}>{l}<br /></span>)}
     Deutschland</p>
 );
 const Mail = () => <a href={`mailto:${MAIL}`}>{MAIL}</a>;

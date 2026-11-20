@@ -100,7 +100,8 @@ function Profile({ prof, color, iso, onStation }) {
       {grid.map((v) => (
         <g key={v}><line className="gridl" x1={ml} x2={W - mr} y1={Yv(v)} y2={Yv(v)} /><text x={ml - 4} y={Yv(v) + 3} textAnchor="end">{v}</text></g>
       ))}
-      {ticks.map((k) => <text key={k} x={X(k * 1000)} y={H - 8} textAnchor="middle">{k}</text>)}
+      {/* letzte Zahl nicht unter «km» setzen */}
+      {ticks.filter((k) => X(k * 1000) < W - mr - 22).map((k) => <text key={k} x={X(k * 1000)} y={H - 8} textAnchor="middle">{k}</text>)}
       <text x={W - mr} y={H - 8} textAnchor="end">km</text>
       <polygon className="earth" points={`${X(0)},${Yv(vmin)} ${ground} ${X(prof.total)},${Yv(vmin)}`} />
       <polyline className="gline" points={ground} />

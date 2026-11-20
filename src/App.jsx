@@ -60,7 +60,8 @@ function CityApp({ city, choose, opts, setOpts }) {
   };
   const scene = useRef();
   const main = useRef();
-  const setOpt = (k, v) => setOpts((o) => ({ ...o, [k]: v }));
+  // «Namen» in der Steuerung gilt auch in der Linienansicht: Wahl dort hebt ein «Namen aus» der Linienkarte auf
+  const setOpt = (k, v) => { if (k === 'labels') setLineNames(true); setOpts((o) => ({ ...o, [k]: v })); };
   const [info, setInfo] = useState(false);
   // Impressum/Datenschutz: Seite oder null; Fokus kehrt beim Schließen zum auslösenden Link zurück
   const [legal, setLegal] = useState(null);
@@ -159,7 +160,7 @@ function CityApp({ city, choose, opts, setOpts }) {
       pin: strong ? `${s.line} · ${statusShort(s)} · ≈ ${Math.round(s.abs)} m ü. NHN${s.state === 'interrupted' ? ' · ohne Halt' : ''}` : null,
       focus: !!focusLine && s.line === focusLine, bg: !!focusLine && s.line !== focusLine && !strong,
     });
-    const showNames = !(focusLine && !lineNames); // «Namen aus» in der Linienkarte
+    const showNames = !(focusLine && (!lineNames || opts.labels === 'none')); // «Namen aus» in der Linienkarte oder «keine»
     // Gewählte Linie: nur ihre Bahnhöfe, kompakt wie in der Übersicht (Tiefe im Profil und beim Überfahren), keine Hintergrundschilder.
     // Übersicht: nur Name + Liniensignets, ohne Tiefe (Tiefe beim Überfahren/Wählen); Modus «ab 10 m» behält die Tiefe.
     if (showNames) nodes.forEach((all, node) => {
@@ -272,7 +273,7 @@ function CityApp({ city, choose, opts, setOpts }) {
     if (s && focusLine && s.line !== focusLine) setFocusLine(s.line);
     if (s && fly) { scene.current?.focus(s); setPreset(null); }
   };
-  const pickLine = (line) => { noteOpener(); setPlaying(false); setSel({ kind: 'line', line }); setFocusLine(line); };
+  const pickLine = (line) => { noteOpener(); setPlaying(false); setLineNames(true); setSel({ kind: 'line', line }); setFocusLine(line); };
   const clearAll = () => { setSel(null); setFocusLine(null); returnFocus(); };
   // ein Schritt zurück: Bahnhof → Profil der untersuchten Linie → Gesamtübersicht
   const stepBack = () => {
@@ -407,7 +408,7 @@ function CityApp({ city, choose, opts, setOpts }) {
         )}
         {focusLine && lineInfo && sel?.kind === 'line' && (
           <LineCard line={focusLine} color={LINE_COLOR[focusLine]} stations={lineInfo.stations} prof={lineInfo.prof} iso={iso}
-            hidden={lineInfo.hidden} year={year} focusReq={focusReq} onShow={() => toggleLine(focusLine)} onOnly={() => onlyLine(focusLine)} names={lineNames} onNames={() => setLineNames((v) => !v)}
+            hidden={lineInfo.hidden} year={year} focusReq={focusReq} onShow={() => toggleLine(focusLine)} onOnly={() => onlyLine(focusLine)} names={lineNames && opts.labels !== 'none'} onNames={() => { if (lineNames && opts.labels !== 'none') setLineNames(false); else { setLineNames(true); if (opts.labels === 'none') setOpt('labels', 'key'); } }}
             onClose={clearAll} onShowMap={showLineOnMap} onStation={(id) => pickStation(id)} />
         )}
         {allHidden && (
