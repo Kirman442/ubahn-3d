@@ -260,6 +260,8 @@ function CityApp({ city, choose, opts, setOpts }) {
   const pickStation = (id, fly = true) => {
     noteOpener(); setPlaying(false); // beim Lesen der Karte nicht weiterlaufen
     setSel({ kind: 'station', id });
+    // schmaler Bildschirm: Karte und Steuerung würden sich überdecken → Steuerung schließen
+    if (typeof window !== 'undefined' && window.innerWidth <= 980) setPanelOpen(false);
     const s = view?.byId[id];
     if (s && focusLine && s.line !== focusLine) setFocusLine(s.line);
     if (s && fly) { scene.current?.focus(s); setPreset(null); }

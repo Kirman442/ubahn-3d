@@ -90,11 +90,20 @@ export function Tubes({ sections, visible, Y, colorMode, focusLine, onHover, onP
   useDispose(geoms);
   const mats = useMemo(() => {
     const m = {};
-    const make = (key, opts) => { m[key] = new THREE.MeshStandardMaterial({ roughness: 0.55, metalness: 0.05, ...opts }); };
+    const make = (key, { twoTone, ...opts }) => {
+      const mat = new THREE.MeshStandardMaterial({ roughness: 0.55, metalness: 0.05, ...opts });
+      // zweifarbige Linien (U7/U8 München): Leuchten in der Farbe der Röhre (Vertexfarbe), nicht weiß –
+      // sonst wirken Rot/Orange blass-rosa; so gleich hell wie einfarbige Linien (emissive = Linienfarbe)
+      if (twoTone) {
+        mat.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n\ttotalEmissiveRadiance *= vColor.rgb;'); };
+        mat.customProgramCacheKey = () => 'twoTone';
+      }
+      m[key] = mat;
+    };
     sections.forEach((s) => {
       const c = new THREE.Color(s.color);
       const two = colorMode !== 'depth' && LINE_COLOR2[s.line];
-      make(`${s.line}`, colorMode === 'depth' ? { vertexColors: true } : two ? { vertexColors: true, emissive: '#ffffff', emissiveIntensity: glow ? 0.12 : 0.03 } : { color: c, emissive: c, emissiveIntensity: glow ? 0.5 : 0.12 });
+      make(`${s.line}`, colorMode === 'depth' ? { vertexColors: true } : two ? { vertexColors: true, emissive: '#ffffff', emissiveIntensity: glow ? 0.5 : 0.12, twoTone: true } : { color: c, emissive: c, emissiveIntensity: glow ? 0.5 : 0.12 });
       make(`${s.line}-f`, { ...(colorMode === 'depth' || two ? { vertexColors: true } : { color: c }), transparent: true, opacity: 0.12, depthWrite: false });
     });
     return m;
