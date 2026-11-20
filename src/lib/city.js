@@ -13,10 +13,12 @@ export const CITIES = [
   {
     id: 'hamburg', name: 'Hamburg', ready: true, data: 'hamburg/', basemap: true,
     origin: { lon: 9.9937, lat: 53.5503 }, h0: 10, startYear: 1910,
-    // Farben aus den OSM-Routenrelationen (colour); ZR = Zweigbahn Rothenburgsort 1915–1943, heute ohne Nummer
-    lines: [{ id: 'U1', color: '#006AB3' }, { id: 'U2', color: '#E2001A' }, { id: 'U3', color: '#FFDD00' }, { id: 'U4', color: '#256D7B' }, { id: 'ZR', color: '#8C8C8C' }],
+    // Farben aus den OSM-Routenrelationen (colour), U4 nach HVV-Fahrplan (CMYK 100/0/40/0); ZR = Zweigbahn Rothenburgsort 1915–1943, heute ohne Nummer
+    lines: [{ id: 'U1', color: '#006AB3' }, { id: 'U2', color: '#E2001A' }, { id: 'U3', color: '#FFDD00' }, { id: 'U4', color: '#00AAAD' }, { id: 'ZR', color: '#8C8C8C' }],
+    // Linien nur im Bau (nicht in der Linienliste): U5 aus der U5-Netzkarte von hamburg.de abgelesen, ungefähr
+    building: [{ id: 'U5', color: '#A6681E' }],
     dgm: 'DGM1 Hamburg, außerhalb EU-DEM', search: 'z. B. Jungfernstieg',
-    note: 'Gemessen sind 9 Bahnhofstiefen (Wikipedia); die übrigen sind aus Lage, Ebene oder OSM geschätzt, die Trasse dazwischen aus Gelände und Bauregeln. Außerhalb Hamburgs (Norderstedt, Ahrensburg, Großhansdorf) Gelände nach EU-DEM 25 m. U2 und U4 teilen zwischen Jungfernstieg und Berliner Tor dasselbe Gleis; die Röhren sind dort nur zur Lesbarkeit nebeneinander gezeichnet. Liniennummern sind die heutigen; ZR = Zweigbahn Rothenburgsort (1915–1943). Gestrichelt: im Bau – U4 Horner Rennbahn – Horner Geest (Eröffnung 2027) und U5 Bramfeld – City Nord (2029/2033); Tiefen außer Stoltenstraße und City Nord geschätzt, U5 ohne amtliche Farbe grau.',
+    note: 'Gemessen sind 9 Bahnhofstiefen (Wikipedia); die übrigen sind aus Lage, Ebene oder OSM geschätzt, die Trasse dazwischen aus Gelände und Bauregeln. Außerhalb Hamburgs (Norderstedt, Ahrensburg, Großhansdorf) Gelände nach EU-DEM 25 m. U2 und U4 teilen zwischen Jungfernstieg und Berliner Tor dasselbe Gleis; die Röhren sind dort nur zur Lesbarkeit nebeneinander gezeichnet. Liniennummern sind die heutigen; ZR = Zweigbahn Rothenburgsort (1915–1943). Gestrichelt: im Bau – U4 Horner Rennbahn – Horner Geest (Eröffnung 2027) und U5 Bramfeld – City Nord (2029/2033); Tiefen außer Stoltenstraße und City Nord geschätzt, Farbe der U5 aus der Netzkarte der Stadt abgelesen (ungefähr).',
     attribution: 'Gelände: DGM1 © Freie und Hansestadt Hamburg, LGV (dl-de/by-2.0), außerhalb EU-DEM (Copernicus) · Geschichte und Tiefen: Wikipedia (CC BY-SA 4.0), Wikidata (CC0) · Lage: © OpenStreetMap-Mitwirkende (ODbL)',
   },
   {
@@ -48,7 +50,7 @@ export function setCity(id) {
   const c = CITIES.find((x) => x.id === id && x.ready) || CITIES[0];
   if (c === CITY && Object.keys(LINE_COLOR).length) return c;
   CITY = c;
-  LINE_COLOR = Object.fromEntries(c.lines.map((l) => [l.id, l.color]));
+  LINE_COLOR = Object.fromEntries([...(c.building || []), ...c.lines].map((l) => [l.id, l.color]));
   LINE_COLOR2 = Object.fromEntries(c.lines.filter((l) => l.color2).map((l) => [l.id, l.color2]));
   setOrigin(c.origin);
   return c;
