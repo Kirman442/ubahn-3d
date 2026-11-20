@@ -10,10 +10,17 @@ import { CITY } from '../lib/city';
 // Eisenbahn, Stadtgrenze aus public/data/<stadt>/basemap.json (scripts/basemap3d.mjs).
 // Farben kommen aus dem Design (hell/dunkel); Linien haben feste Breite in Bildschirmpixeln.
 
+// Helles Design: Flächen multiplizieren statt überdecken – Röhren unter der Oberfläche bleiben satt,
+// statt von einer hellen, halbdurchsichtigen Schicht ausgewaschen zu werden. Deckkraft = Mischung mit Weiß.
+export const mulColor = (c, a) => new THREE.Color('#ffffff').lerp(new THREE.Color(c), Math.min(1, a));
+export const surfMat = (dark, color, opacity) => (dark
+  ? { color, transparent: true, opacity }
+  : { color: mulColor(color, opacity), transparent: true, opacity: 1, blending: THREE.MultiplyBlending, premultipliedAlpha: true });
+
 export const PALETTE = {
   dunkel: { base: '#1F252C', green: '#22362A', forest: '#1C3024', water: '#1E4466', river: '#2B5A85',
     motorway: '#554B3D', trunk: '#4B453D', primary: '#5E6672', secondary: '#48505B', main: '#4D535C', sbahn: '#45574D', boundary: '#9A8A6A' },
-  hell: { base: '#E9EBE6', green: '#CFE1C3', forest: '#BBD4AE', water: '#9EC6E8', river: '#7FB1DE',
+  hell: { base: '#F6F7F4', green: '#CFE1C3', forest: '#BBD4AE', water: '#9EC6E8', river: '#7FB1DE',
     motorway: '#D3BE98', trunk: '#D5C6AC', primary: '#B9B4AA', secondary: '#CBC7BF', main: '#ADB2B9', sbahn: '#A2B6AA', boundary: '#8A7A60' },
 };
 // Füllungen: Schlüssel aus basemap.json → Farbe, Reihenfolge = Zeichenreihenfolge
@@ -120,7 +127,7 @@ export default function Schema({ dark, opacity, extent }) {
     <group position={[0, 0.5, 0]}>
       {geo.fills.map(([c, g], i) => (
         <mesh key={c} geometry={g} raycast={noRay} renderOrder={2 + i * 0.1}>
-          <meshBasicMaterial color={P[c]} side={c === 'water' ? THREE.DoubleSide : THREE.FrontSide} transparent opacity={Math.min(1, opacity * 1.2)} depthWrite={false} toneMapped={false} clippingPlanes={clip} />
+          <meshBasicMaterial key={dark ? 'd' : 'h'} {...surfMat(dark, P[c], Math.min(1, opacity * 1.2))} side={c === 'water' ? THREE.DoubleSide : THREE.FrontSide} depthWrite={false} toneMapped={false} clippingPlanes={clip} />
         </mesh>
       ))}
       {lines.map((o, i) => <primitive key={i} object={o} />)}

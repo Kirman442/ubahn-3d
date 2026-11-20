@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { CITY } from '../lib/city';
-import Schema, { PALETTE } from './Schema';
+import Schema, { PALETTE, surfMat } from './Schema';
 
 // Oberfläche: Fläche in Geländehöhe, darauf die schematische Stadt (Schema.jsx, three.js-Geometrie),
 // darunter ein erdfarbener «Deckel» und ein Schnitt an den Rändern.
@@ -20,6 +20,7 @@ function planeGeometry(extent, n = 40) {
 }
 
 const EARTH = '#8A6A45';
+const VEIL = 0.45; // Anteil des Schleiers an der Deckkraft (hell)
 
 export default function Surface({ extent, kind, opacity, depthBottom, dark }) {
   const geo = useMemo(() => planeGeometry(extent), [extent]);
@@ -44,8 +45,14 @@ export default function Surface({ extent, kind, opacity, depthBottom, dark }) {
     <group>
       {/* сверху: схема города */}
       <mesh geometry={geo} renderOrder={1}>
-        <meshBasicMaterial color={top} transparent opacity={opacity} depthWrite={false} side={THREE.FrontSide} toneMapped={false} />
+        <meshBasicMaterial key={dark ? 'd' : 'h'} {...surfMat(dark, top, opacity)} depthWrite={false} side={THREE.FrontSide} toneMapped={false} />
       </mesh>
+      {/* helles Design: leichter heller Schleier über dem Untergrund, damit Röhren unter der Oberfläche als «unten» lesbar bleiben */}
+      {!dark && (
+        <mesh geometry={geo} renderOrder={1.5}>
+          <meshBasicMaterial color={top} transparent opacity={opacity * VEIL} depthWrite={false} side={THREE.FrontSide} toneMapped={false} />
+        </mesh>
+      )}
       {schema && <Schema key={CITY.id} dark={dark} opacity={opacity} extent={extent} />}
       {/* снизу: земляной «потолок» — та же схема, тонированная в цвет грунта */}
       <mesh geometry={geo} renderOrder={1}>
