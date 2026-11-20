@@ -43,7 +43,8 @@ export function buildConstruction(cons, stations, { MX, MY, sign = 1 }) {
   const constructionStations = pts.filter((f) => !/^bestehend/.test(f.properties.status || '') && !ex(f.properties.line, f.properties.name)).map((f) => {
     const k = `${f.properties.line}|${f.properties.name}`;
     return { name: f.properties.name, line: f.properties.line, lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1],
-      z: depth[k], ground: f.properties.ground_dgm1_m, opening: f.properties.expected_opening, guessed: guessed.has(k) };
+      z: depth[k], ground: f.properties.ground_dgm1_m, opening: f.properties.expected_opening, guessed: guessed.has(k),
+      measured: /^measured/.test(f.properties.depth_source || '') };
   });
   if (guessed.size) console.log(`Tiefe fehlt, gehalten: ${[...guessed].join(', ')}`);
   return { construction, constructionStations };

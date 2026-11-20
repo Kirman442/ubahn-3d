@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { DEEP_LABEL } from '../lib/config';
-import { CITY, lineBg } from '../lib/city';
+import { DEEP_LABEL, END_YEAR } from '../lib/config';
+import { CITY, LINE_COLOR, lineBg } from '../lib/city';
 import { RAMP_CSS } from '../lib/colors';
 import { nameAt } from '../lib/time';
 import { depthText, statusShort, isApprox } from '../lib/depth';
@@ -51,7 +51,7 @@ export default function Panel(p) {
   // «Darstellung» standardmäßig offen; Zustand je Betrachter merken
   const [darstOpen, setDarstOpen] = useState(() => { try { return localStorage.getItem('ubahn3d.darst') !== '0'; } catch { return true; } });
   useEffect(() => { try { localStorage.setItem('ubahn3d.darst', darstOpen ? '1' : '0'); } catch { /* ohne Speicher */ } }, [darstOpen]);
-  const { surfaceKind, stats, hiddenLines, toggleLine, showAll, focusLine, onLine, opts, setOpt, deepest, iso, year, onStation, stations, open, setOpen } = p;
+  const { build, surfaceKind, stats, hiddenLines, toggleLine, showAll, focusLine, onLine, opts, setOpt, deepest, iso, year, onStation, stations, open, setOpen } = p;
   const md = stats.maxDepthSt;
   return (
     <aside className={`panel${open ? ' open' : ''}`} id="panel" aria-label="Steuerung">
@@ -85,7 +85,18 @@ export default function Panel(p) {
             </li>
           );
         })}
+        {build && (
+          <li className="build">
+            <button type="button" className={`tog${opts.build ? '' : ' off'}`} onClick={() => setOpt('build', !opts.build)} aria-pressed={opts.build}
+              aria-label="Strecken im Bau anzeigen" title={build.now ? '' : `nur im Netzstand ${END_YEAR} sichtbar`}>
+              <span className="box" aria-hidden="true">{opts.build ? '✓' : ''}</span>
+              <span className="swatch dash" style={{ '--c1': LINE_COLOR[build.lines[0]] || '#A0A0A0', '--c2': LINE_COLOR[build.lines[1] || build.lines[0]] || '#A0A0A0' }} /><b>im Bau</b>
+            </button>
+            <span className="muted">{build.lines.join(', ')}{build.n ? ` · ${build.n} Bhf.` : ''}</span>
+          </li>
+        )}
       </ul>
+      {build && !build.now && opts.build && <p className="hint small">Strecken im Bau erscheinen beim Netzstand {END_YEAR}.</p>}
       {stats.ghost > 0 && CITY.id === 'berlin' && (
         <div className="ghost-note"><span className="ring" aria-hidden="true" />
           <p><b>{stats.ghost} Geisterbahnhöfe</b> – Züge aus West-Berlin fuhren unter Ost-Berlin ohne Halt durch (1961–1990).</p></div>

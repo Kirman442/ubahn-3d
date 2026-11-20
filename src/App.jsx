@@ -18,7 +18,7 @@ const load = (name) => fetch(`/data/${CITY.data}${name}`, { cache: 'no-cache' })
 
 const saved = (k, fb) => { try { return localStorage.getItem(k) || fb; } catch { return fb; } };
 const START_THEME = saved('ubahn3d.theme', typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dunkel' : 'hell');
-const DEFAULT_OPTS = { theme: START_THEME, style: saved('ubahn3d.style', 'neu'), exag: DEFAULT_EXAG, surface: 'schema', surfOp: 0.55, mode: 'rel', color: 'line', labels: 'key', shafts: true, grid: true, levels: true, transfers: true };
+const DEFAULT_OPTS = { theme: START_THEME, style: saved('ubahn3d.style', 'neu'), exag: DEFAULT_EXAG, surface: 'schema', surfOp: 0.55, mode: 'rel', color: 'line', labels: 'key', build: true, shafts: true, grid: true, levels: true, transfers: true };
 const cssVar = (n, fb) => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || fb;
 
 // Stadtwahl: Stadt steht in der Adresse (#nuernberg). Beim Wechsel wird die Stadtansicht neu aufgebaut
@@ -302,6 +302,22 @@ function CityApp({ city, choose, opts, setOpts }) {
           <span className="muted">{hoverStation.line} · {statusShort(hoverStation)} · ≈ {Math.round(hoverStation.abs)} m ü. NHN{hoverStation.state === 'interrupted' ? ' · ohne Halt' : ''}</span>
         </div>
       );
+    } else if (hover.kind === 'build') {
+      const c = hover.item;
+      tip = (
+        <div className="tip" style={pos}>
+          <b>{c.line}</b> {c.from} – {c.to}<br />
+          <span className="muted">im Bau · Eröffnung geplant {c.opening || '?'}</span>
+        </div>
+      );
+    } else if (hover.kind === 'buildStation') {
+      const s = hover.st;
+      tip = (
+        <div className="tip" style={pos}>
+          <b>{s.name}</b><span className="m">{s.z == null ? '' : `${s.measured ? '' : '≈ '}${fmtM(s.z)} m`}</span><br />
+          <span className="muted">{s.line} · im Bau · Eröffnung geplant {s.opening || '?'} · {s.guessed ? 'Tiefe unbekannt' : s.measured ? 'Tiefe laut Planung' : 'Tiefe geschätzt'}</span>
+        </div>
+      );
     } else if (hover.kind === 'line') {
       tip = (
         <div className="tip" style={pos}>
@@ -350,13 +366,13 @@ function CityApp({ city, choose, opts, setOpts }) {
         {data && view && extent && (
           <Scene ref={scene} data={data} view={view} Y={Y} SY={SY} opts={{ ...opts, exag, surface: surfaceKind }} extent={extent} bg={bg}
             focusLine={focusLine} selected={selStation} hoverId={hoverStation?.id} labelItems={labelItems}
-            onHover={setHover} onUserCamera={() => setPreset(null)}
+            onHover={setHover} onUserCamera={() => setPreset(null)} showBuild={opts.build && year >= END_YEAR}
             onPick={(p) => { if (!p) stepBack(); else if (p.kind === 'station') pickStation(p.id, false); else pickLine(p.line); }} />
         )}
         {tip}
         {info && <ModelInfo exag={opts.exag} onClose={() => setInfo(false)} />}
         {data && (
-          <Panel surfaceKind={surfaceKind} stats={stats} hiddenLines={hiddenLines} toggleLine={toggleLine} showAll={showAllLines} focusLine={focusLine} onLine={pickLine}
+          <Panel build={data?.construction?.length ? { n: data.constructionStations?.length || 0, lines: [...new Set(data.construction.map((c) => c.line))], now: year >= END_YEAR } : null} surfaceKind={surfaceKind} stats={stats} hiddenLines={hiddenLines} toggleLine={toggleLine} showAll={showAllLines} focusLine={focusLine} onLine={pickLine}
             stations={view?.stations || []} open={panelOpen} setOpen={showPanel}
             opts={opts} setOpt={setOpt} deepest={deepest} iso={iso} year={year} onStation={(id) => pickStation(id)} />
         )}

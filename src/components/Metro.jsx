@@ -248,29 +248,50 @@ export function SurfaceTraces({ sections, visible, SY }) {
 // ---------- Baustelle (gestrichelt, ohne Höhenangaben der Quelle) ----------
 // Linie ohne amtliche Farbe (Hamburg U5): neutral grau statt erfundener Farbe
 const NO_COLOR = '#A0A0A0';
-export function Construction({ items, stations = [], Y }) {
-  const geos = useMemo(() => {
-    const by = new Map();
-    items.forEach((c) => {
-      if (!by.has(c.line)) by.set(c.line, []);
-      const a = by.get(c.line);
-      for (let k = 1; k < c.pts.length; k++) { const p = c.pts[k - 1]; const q = c.pts[k]; a.push(p.x, Y(p.z, p.g), p.zz, q.x, Y(q.z, q.g), q.zz); }
-    });
-    return [...by].map(([line, a]) => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(a, 3)); return [line, g]; });
-  }, [items, Y]);
-  useEffect(() => () => geos.forEach(([, g]) => g.dispose()), [geos]);
+const DASH = 150; const DASH_ON = 95; // m entlang der Röhre: Strich … Periode
+function dashedTube(c, Y, radius) {
+  const raw = [];
+  for (const p of c.pts) { const v = new THREE.Vector3(p.x, Y(p.z, p.g), p.zz); if (!raw.length || v.distanceTo(raw[raw.length - 1]) > 2) raw.push(v); }
+  if (raw.length < 2) return null;
+  const curve = new THREE.CatmullRomCurve3(raw, false, 'centripetal');
+  const L = curve.getLength(); const segs = Math.min(800, Math.max(8, Math.round(L / 12))); const radial = 10;
+  const geo = new THREE.TubeGeometry(curve, segs, radius, radial, false);
+  // Bogenlänge je Vertex (TubeGeometry tastet gleichabständig ab: Ring i liegt bei i/segs·L)
+  const arc = new Float32Array((segs + 1) * (radial + 1));
+  for (let i = 0; i <= segs; i++) for (let j = 0; j <= radial; j++) arc[i * (radial + 1) + j] = (i / segs) * L;
+  geo.setAttribute('aArc', new THREE.BufferAttribute(arc, 1));
+  return geo;
+}
+const dashMat = (color, glow) => {
+  const m = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: glow ? 0.35 : 0.1, roughness: 0.55, transparent: true, opacity: 0.9 });
+  m.onBeforeCompile = (sh) => {
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float aArc;\nvarying float vArc;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvArc = aArc;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vArc;').replace('void main() {', `void main() {\n\tif (mod(vArc, ${DASH.toFixed(1)}) > ${DASH_ON.toFixed(1)}) discard;`);
+  };
+  m.customProgramCacheKey = () => 'dashTube';
+  return m;
+};
+// Strecken und Bahnhöfe im Bau: gestrichelte, dünnere Röhre; Bahnhof als halbdurchsichtige Kugel mit Ring
+export function Construction({ items, stations = [], Y, neu, glow, onHover }) {
   const col = (line) => LINE_COLOR[line] || NO_COLOR;
+  const r = (neu ? TUBE_RADIUS * 1.7 : TUBE_RADIUS) * 0.75;
+  const geos = useMemo(() => items.map((c) => dashedTube(c, Y, r)), [items, Y, r]);
+  useEffect(() => () => geos.forEach((g) => g?.dispose()), [geos]);
+  const mats = useMemo(() => Object.fromEntries([...new Set(items.map((c) => c.line))].map((l) => [l, dashMat(col(l), glow)])), [items, glow]);
+  const sMats = useMemo(() => Object.fromEntries([...new Set(stations.map((s) => s.line))].map((l) => [l,
+    new THREE.MeshStandardMaterial({ color: col(l), emissive: col(l), emissiveIntensity: 0.15, transparent: true, opacity: 0.45, depthWrite: false })])), [stations]);
+  useEffect(() => () => [...Object.values(mats), ...Object.values(sMats)].forEach((m) => m.dispose()), [mats, sMats]);
+  const hov = (e, o) => { e.stopPropagation(); onHover({ ...o, x: e.clientX, y: e.clientY }); };
   return (
     <group>
-      {geos.map(([line, g]) => (
-        <lineSegments key={line} geometry={g} onUpdate={(l) => l.computeLineDistances()} raycast={() => null}>
-          <lineDashedMaterial color={col(line)} dashSize={60} gapSize={45} />
-        </lineSegments>
+      {items.map((c, i) => geos[i] && (
+        <mesh key={i} geometry={geos[i]} material={mats[c.line]}
+          onPointerMove={(e) => hov(e, { kind: 'build', item: c })} onPointerOut={() => onHover(null)} />
       ))}
-      {/* Bahnhöfe im Bau: wie unterbrochene Bahnhöfe – blasse Kugel mit Ring in Linienfarbe */}
       {stations.map((s) => (
         <group key={`${s.line}|${s.name}`} position={[s.x, Y(s.z, s.ground), s.zz]}>
-          <mesh geometry={sphere} raycast={() => null}><meshStandardMaterial color="#ffffff" transparent opacity={0.3} depthWrite={false} /></mesh>
+          <mesh geometry={neu ? sphereNeu : sphere} material={sMats[s.line]}
+            onPointerMove={(e) => hov(e, { kind: 'buildStation', st: s })} onPointerOut={() => onHover(null)} />
           <mesh geometry={ring} raycast={() => null}><meshBasicMaterial color={col(s.line)} /></mesh>
         </group>
       ))}

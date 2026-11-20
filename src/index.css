@@ -327,3 +327,6 @@ header h1 { font-size: 1.3rem; letter-spacing: -0.01em; color: var(--ink); }
 .tip.pin { left: 0; top: 0; will-change: transform; }
 .tip.pin .pin-go { pointer-events: auto; float: right; margin: -2px -4px 0 10px; width: 24px; height: 24px; display: inline-grid; place-items: center; border: 1px solid var(--rule); border-radius: 6px; background: transparent; color: var(--ink); cursor: pointer; padding: 0; }
 .tip.pin .pin-go:hover { background: var(--ochre); color: #fff; border-color: transparent; }
+/* Strecken im Bau: gestrichelter Balken in den Farben der Linien */
+.swatch.dash { background: repeating-linear-gradient(90deg, var(--c1) 0 5px, transparent 5px 8px, var(--c2) 8px 13px, transparent 13px 16px); height: 5px; }
+.lines li.build .muted { font-size: 0.74rem; }

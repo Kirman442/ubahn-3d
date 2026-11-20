@@ -119,7 +119,7 @@ const ISO_EL = (60 * Math.PI) / 180; // Neigung der Startansicht
 const ISO_D = 540;                     // Abstand in Einheiten von k (k = Netzausdehnung / 470)
 
 const Scene = forwardRef(function Scene(props, ref) {
-  const { data, view, Y, SY, opts, focusLine, selected, hoverId, labelItems, onHover, onPick, onUserCamera, extent, bg } = props;
+  const { data, view, Y, SY, opts, focusLine, selected, hoverId, labelItems, onHover, onPick, onUserCamera, extent, bg, showBuild } = props;
   const overlay = useRef();
   const neu = opts.style === 'neu'; const dark = opts.theme === 'dunkel';
   const rig = useRef(null);
@@ -168,7 +168,7 @@ const Scene = forwardRef(function Scene(props, ref) {
         <Guides extent={extent} mode={opts.mode} exag={opts.exag} showGrid={opts.grid} showLevels={opts.levels} />
         {opts.mode === 'abs' && opts.grid && <SurfaceTraces sections={data.sections} visible={view.sectionVisible} SY={SY} />}
         {opts.shafts && <Shafts stations={view.stations} Y={Y} SY={SY} />}
-        {data.construction?.length > 0 && <Construction items={data.construction} stations={data.constructionStations} Y={Y} />}
+        {showBuild && data.construction?.length > 0 && <Construction items={data.construction} stations={data.constructionStations} Y={Y} neu={neu} glow={dark} onHover={onHover} />}
         <Tubes neu={neu} glow={dark} sections={data.sections} visible={view.sectionVisible} Y={Y} colorMode={opts.color} focusLine={focusLine} onHover={onHover} onPick={onPick} />
         <Stations neu={neu} sections={data.sections} stations={view.stations} Y={Y} colorMode={opts.color} focusLine={focusLine} selectedId={selected?.id} hoverId={hoverId} onHover={onHover} onPick={onPick} />
         {opts.transfers && <Transfers pairs={view.transfers} byId={view.byId} Y={Y} />}
