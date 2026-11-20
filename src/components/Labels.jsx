@@ -64,7 +64,17 @@ export default function Labels({ items, overlay }) {
       const on = zoomOk && v.z < 1 && v.z > -1 && Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1;
       if (on !== e.shown) { e.el.style.display = on ? 'block' : 'none'; e.shown = on; }
       if (!on) continue;
-      e.el.style.transform = `translate(${(((v.x + 1) / 2) * W).toFixed(1)}px, ${(((1 - v.y) / 2) * H).toFixed(1)}px) ${it.pin ? 'translate(14px, 14px)' : `translate(-50%, -135%) translateY(${-e.lift}px)`}`;
+      const px = ((v.x + 1) / 2) * W; const py = ((1 - v.y) / 2) * H;
+      if (it.pin) {
+        // Feste Blase: Seite nach verfügbarem Platz wählen und in der Szene halten (390 px: sonst rechts abgeschnitten)
+        const M = 10; const D = 14;
+        // einzeilig, solange die Szene breit genug ist; sonst Umbruch der zweiten Zeile (einmal je Breite gemessen)
+        if (e.fitW !== W) { e.el.classList.remove('wrap'); e.fitW = W; if (e.el.offsetWidth > W - 2 * M) e.el.classList.add('wrap'); }
+        const w = e.el.offsetWidth; const h = e.el.offsetHeight;
+        let x = px + D; if (x + w > W - M) x = px - D - w; x = Math.max(M, Math.min(W - M - w, x));
+        let y = py + D; if (y + h > H - M) y = py - D - h; y = Math.max(M, Math.min(H - M - h, y));
+        e.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+      } else e.el.style.transform = `translate(${px.toFixed(1)}px, ${py.toFixed(1)}px) translate(-50%, -135%) translateY(${-e.lift}px)`;
       // Stapelung nach Priorität: gewählt/überfahren → untersuchte Linie → Hintergrund; innerhalb: näher liegt oben
       e.el.style.zIndex = String(it.strong ? 300000 : (it.focus ? 200000 : 100000) - Math.min(99999, Math.round(dist / 5)));
     }

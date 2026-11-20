@@ -325,6 +325,8 @@ header h1 { font-size: 1.3rem; letter-spacing: -0.01em; color: var(--ink); }
 .lbl .lbd { display: inline-flex; gap: 2px; margin-right: 4px; vertical-align: 0; }
 .lbl .lbd i { width: 7px; height: 7px; border-radius: 50%; display: inline-block; box-shadow: 0 0 0 1px var(--lbl-bg, #0006); }
 .tip.pin { left: 0; top: 0; will-change: transform; }
+.tip.pin.wrap { max-width: calc(100% - 20px); white-space: normal; }
+.tip.pin.wrap b, .tip.pin.wrap .m { white-space: nowrap; }
 .tip.pin .pin-go { pointer-events: auto; float: right; margin: -2px -4px 0 10px; width: 24px; height: 24px; display: inline-grid; place-items: center; border: 1px solid var(--rule); border-radius: 6px; background: transparent; color: var(--ink); cursor: pointer; padding: 0; }
 .tip.pin .pin-go:hover { background: var(--ochre); color: #fff; border-color: transparent; }
 /* Strecken im Bau: gestrichelter Balken in den Farben der Linien */
