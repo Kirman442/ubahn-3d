@@ -140,7 +140,7 @@ function CityApp({ city, choose, opts, setOpts }) {
     if (!view) return [];
     const nodes = new Map();
     view.stations.forEach((s) => { if (!nodes.has(s.node)) nodes.set(s.node, []); nodes.get(s.node).push(s); });
-    const strongIds = new Set([selStation?.id, hoverStation?.id].filter(Boolean));
+    const strongIds = new Set([selStation?.id].filter(Boolean)); // Überfahren: nur die Hinweisblase, kein zweites Schild
     const out = [];
     const one = (s, strong) => ({
       key: s.id, x: s.x, y: Y(s.z, s.ground), z: s.zz, text: nameAt(s, iso), depth: depthText(s), lines: [s.line],
@@ -172,16 +172,15 @@ function CityApp({ city, choose, opts, setOpts }) {
       }
       out.push({ key: `n:${node}`, x: top.x, y: Y(top.z, top.ground), z: top.zz, text: nameAt(top, iso), depth,
         lines: CITY.lines.map((l) => l.id).filter((l) => lines.includes(l)), color: top.color,
-        ghost: list.every((s) => s.state === 'interrupted'), strong: false, focus: !!focusLine, bg: false });
+        ghost: list.every((s) => s.state === 'interrupted'), strong: false, focus: !!focusLine, bg: false, compact: !focusLine });
     });
-    // «Etagen»: in dichten Modi (alle, ab 10 m, Linienkarte) steht jedes Schild je nach Linie höher, mit Führungsstrich
-    const floors = opts.labels === 'all' || opts.labels === 'deep' || !!focusLine;
+    // «Etagen»: nur bei «alle» und in der Linienkarte steht jedes Schild je nach Linie höher, mit Führungsstrich
+    const floors = opts.labels === 'all' || !!focusLine;
     const order = CITY.lines.map((l) => l.id);
     if (floors) out.forEach((it) => { it.tier = order.indexOf(it.lines[0]) + 1; });
     if (selStation) out.push(one(selStation, true));
-    if (hoverStation && hoverStation.id !== selStation?.id) out.push(one(hoverStation, true));
     return out;
-  }, [view, nbrs, opts.labels, focusLine, lineNames, selStation, hoverStation, Y, iso]);
+  }, [view, nbrs, opts.labels, focusLine, lineNames, selStation, Y, iso]);
 
   const stats = useMemo(() => {
     // Bahnhöfe = Stationsknoten (s.node), nicht Bahnsteig-/Ebenen-Einträge; siehe assignNodes()
@@ -270,7 +269,9 @@ function CityApp({ city, choose, opts, setOpts }) {
   if (hover && main.current) {
     const r = main.current.getBoundingClientRect();
     const pos = { left: hover.x - r.left, top: hover.y - r.top };
-    if (hoverStation) {
+    if (hoverStation && hoverStation.id === selStation?.id) {
+      // gewählter Bahnhof hat schon sein Schild und die Karte – keine zweite Blase
+    } else if (hoverStation) {
       tip = (
         <div className="tip" style={pos}>
           <b>{nameAt(hoverStation, iso)}</b><span className="m">{depthText(hoverStation)}</span><br />

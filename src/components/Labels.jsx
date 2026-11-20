@@ -10,6 +10,8 @@ const signets = (lines) => (lines || []).map((l) => `<i class="lb${light(LINE_CO
 // Подписи — DOM поверх холста. Ничего не скрываем: подписи могут накладываться,
 // ближняя к камере лежит сверху (z-index), как в 3d-metro. Набор меняется только
 // от настроек (режим подписей, год, выбор), а не от движения камеры.
+// kompakte Übersicht: kleine Farbpunkte statt Signetzeile (weniger Fläche, weniger Überlagerung)
+const dots = (lines) => `<span class="lbd">${(lines || []).map((l) => `<i style="background:${lineBg(l)}"></i>`).join('')}</span>`;
 const FLOOR_PX = 18; // Abstand der Etagen in Bildschirmpixeln (nicht Meter)
 
 export default function Labels({ items, overlay }) {
@@ -25,11 +27,11 @@ export default function Labels({ items, overlay }) {
       let e = old.get(it.key);
       if (e) old.delete(it.key);
       else { e = { key: it.key, el: document.createElement('div'), shown: false }; e.el.style.display = 'none'; root.appendChild(e.el); }
-      e.el.className = `lbl${it.ghost ? ' ghost' : ''}${it.strong ? ' strong' : ''}${it.focus ? ' focus' : ''}${it.bg ? ' bg' : ''}${it.tier ? ' lead' : ''}`;
+      e.el.className = `lbl${it.ghost ? ' ghost' : ''}${it.strong ? ' strong' : ''}${it.focus ? ' focus' : ''}${it.bg ? ' bg' : ''}${it.tier ? ' lead' : ''}${it.compact ? ' cmp' : ''}`;
       e.lift = it.tier ? it.tier * FLOOR_PX : 0;
       e.el.style.setProperty('--lead', `${e.lift}px`);
       e.el.style.setProperty('--c', it.color);
-      e.el.innerHTML = `<span class="lbs">${signets(it.lines)}</span>${it.text}${it.depth ? `<b>${it.depth}</b>` : ''}`;
+      e.el.innerHTML = `${it.compact ? dots(it.lines) : `<span class="lbs">${signets(it.lines)}</span>`}${it.text}${it.depth ? `<b>${it.depth}</b>` : ''}`;
       e.it = it;
       return e;
     });

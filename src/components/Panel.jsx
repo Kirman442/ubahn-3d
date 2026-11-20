@@ -140,6 +140,7 @@ export default function Panel(p) {
 
       <h2 id="h-names">Namen</h2>
       <Seg value={opts.labels} labelledby="h-names" set={(v) => setOpt('labels', v)} options={[['none', 'keine'], ['key', 'wichtige'], ['deep', `ab ${DEEP_LABEL} m`], ['all', 'alle']]} />
+      {opts.labels === 'deep' && <p className="hint small">Bahnhöfe mit mindestens einer Ebene ab {DEEP_LABEL} m Tiefe.</p>}
       <p className="hint small">Gewählter Bahnhof und Bahnhöfe der untersuchten Linie werden immer benannt, auch bei «keine». Namen dürfen sich überlagern; der gewählte liegt oben.</p>
 
       <h2 id="h-layers">Ebenen</h2>

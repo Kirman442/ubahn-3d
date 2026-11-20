@@ -318,3 +318,5 @@ header h1 { font-size: 1.3rem; letter-spacing: -0.01em; color: var(--ink); }
 /* Liniensignets über dem Namen: schmalere Schilder */
 .lbl .lbs { display: block; margin: 0 0 2px; line-height: 1; }
 .lbl .lbs i.lb:last-child { margin-right: 0; }
+.lbl .lbd { display: inline-flex; gap: 2px; margin-right: 4px; vertical-align: 0; }
+.lbl .lbd i { width: 7px; height: 7px; border-radius: 50%; display: inline-block; box-shadow: 0 0 0 1px var(--lbl-bg, #0006); }
