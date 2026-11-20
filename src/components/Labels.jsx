@@ -12,6 +12,7 @@ const signets = (lines) => (lines || []).map((l) => `<i class="lb${light(LINE_CO
 // от настроек (режим подписей, год, выбор), а не от движения камеры.
 // kompakte Übersicht: kleine Farbpunkte statt Signetzeile (weniger Fläche, weniger Überlagerung)
 const dots = (lines) => `<span class="lbd">${(lines || []).map((l) => `<i style="background:${lineBg(l)}"></i>`).join('')}</span>`;
+const TARGET = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="5"/><circle cx="8" cy="8" r="1.4" fill="currentColor" stroke="none"/><path d="M8 0.5v3M8 12.5v3M0.5 8h3M12.5 8h3"/></svg>';
 const FLOOR_PX = 18; // Abstand der Etagen in Bildschirmpixeln (nicht Meter)
 
 export default function Labels({ items, overlay }) {
@@ -33,7 +34,8 @@ export default function Labels({ items, overlay }) {
       e.el.style.setProperty('--c', it.color);
       if (it.pin) {
         e.el.className = 'tip pin'; e.lift = 0;
-        e.el.innerHTML = `<b>${it.text}</b><span class="m">${it.depth || ''}</span><br /><span class="muted">${it.pin}</span>`;
+        e.el.innerHTML = `<button type="button" class="pin-go" title="Zum Bahnhof" aria-label="Zum Bahnhof">${TARGET}</button><b>${it.text}</b><span class="m">${it.depth || ''}</span><br /><span class="muted">${it.pin}</span>`;
+        e.el.querySelector('.pin-go').onclick = (ev) => { ev.stopPropagation(); e.it?.target?.(); };
         e.it = it; return e;
       }
       e.el.innerHTML = `${it.compact ? dots(it.lines) : `<span class="lbs">${signets(it.lines)}</span>`}${it.text}${it.depth ? `<b>${it.depth}</b>` : ''}`;

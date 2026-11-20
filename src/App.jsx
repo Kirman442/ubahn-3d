@@ -136,6 +136,8 @@ function CityApp({ city, choose, opts, setOpts }) {
   // подписи: набор зависит только от настроек и выбора, не от камеры.
   // Ein Schild je Bahnhof (Knoten): Liniensignets aller Linien + Tiefe bzw. Tiefenspanne.
   // Gewählter/überfahrener Bahnhof bekommt ein eigenes Schild mit seiner genauen Tiefe.
+  const focusSelRef = useRef(null);
+  focusSelRef.current = () => { scene.current?.focus(selStation); setPreset(null); };
   const labelItems = useMemo(() => {
     if (!view) return [];
     const nodes = new Map();
@@ -146,6 +148,7 @@ function CityApp({ city, choose, opts, setOpts }) {
       key: s.id, x: s.x, y: Y(s.z, s.ground), z: s.zz, text: nameAt(s, iso), depth: depthText(s), lines: [s.line],
       color: s.color, ghost: s.state === 'interrupted', strong,
       // gewählter Bahnhof: dieselbe Blase wie beim Überfahren, am Punkt festgehalten
+      target: strong ? () => focusSelRef.current?.() : null,
       pin: strong ? `${s.line} · ${statusShort(s)} · ≈ ${Math.round(s.abs)} m ü. NHN${s.state === 'interrupted' ? ' · ohne Halt' : ''}` : null,
       focus: !!focusLine && s.line === focusLine, bg: !!focusLine && s.line !== focusLine && !strong,
     });
