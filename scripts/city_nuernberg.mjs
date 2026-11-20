@@ -5,6 +5,7 @@
 // Röhren dort um OFFSET m seitlich auseinandergezogen (U2 links, U3 rechts der Achse) – reine Darstellung.
 import fs from 'node:fs';
 import path from 'node:path';
+import { joinEnds } from './join_ends.mjs';
 
 const SRC = process.argv[2] || path.resolve('../../Nürnberg');
 const OUT = path.resolve('public/data/nuernberg');
@@ -78,6 +79,8 @@ const construction = cons.features.filter((f) => f.geometry.type === 'LineString
 const constructionStations = cons.features.filter((f) => f.geometry.type === 'Point').map((f) => ({ name: f.properties.name, lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], z: gr.z, ground: gr.ground }));
 
 fs.mkdirSync(OUT, { recursive: true });
+// Röhrenenden je Linie und Bahnhof zusammenführen (seitlicher Versatz gemeinsamer Tunnel ohne Sprung)
+console.log(`Röhrenenden angeglichen: ${joinEnds({ sections, stations, props }, { lat0: stations[0].lat })}`);
 fs.writeFileSync(path.join(OUT, 'network3d.json'), JSON.stringify({ stations, sections, construction, constructionStations }));
 fs.writeFileSync(path.join(OUT, 'stations.geojson'), JSON.stringify({ type: 'FeatureCollection', features: props }));
 console.log(`Bahnhöfe ${stations.length}, Strecken ${sections.length} (geteilt U2/U3: ${sections.filter(shared).length}), Baustelle ${construction.length} Linien, ${constructionStations.length} Bahnhöfe`);

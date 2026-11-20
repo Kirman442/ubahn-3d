@@ -105,6 +105,48 @@ for (const { L, nm, iv } of Object.values(stIv)) {
   });
 }
 
+// 3) Stoßfreie Röhren: an jedem Bahnhof enden alle Röhren derselben Linie im selben Punkt.
+// Lage = Mittel der Röhrenenden (die Seitenlage SP beginnt/endet sonst sprunghaft), Höhe = Bahnsteig des Bahnhofs.
+// Die Röhre wird auf den letzten BL m weich (smoothstep) dorthin gezogen; der Bahnhof sitzt im selben Punkt.
+const BL = 250;
+const junc = {};
+for (const sc of sections) {
+  for (const [nm, k] of [[sc.from, 0], [sc.to, sc.xyz.length - 1]]) {
+    const j = (junc[`${sc.line}|${nm}`] ||= { lon: 0, lat: 0, n: 0, seen: new Set() });
+    if (j.seen.has(sc.xyz)) continue; j.seen.add(sc.xyz);
+    j.lon += sc.xyz[k][0]; j.lat += sc.xyz[k][1]; j.n++;
+  }
+}
+const stBy = {}; stations.forEach((st) => { stBy[`${st.line}|${st.name}`] ||= st; });
+Object.entries(junc).forEach(([key, j]) => {
+  j.lon /= j.n; j.lat /= j.n; const st = stBy[key];
+  j.z = st ? st.z : null; j.g = st ? st.ground : null;
+});
+const done = new Map(); let moved = 0;
+for (const sc of sections) {
+  if (done.has(sc.xyz)) { const r = done.get(sc.xyz); sc.xyz = r.xyz; sc.g = r.g; continue; }
+  const P = sc.xyz.map((q) => [...q]); const G = [...sc.g]; const m = P.length;
+  const cum = [0]; for (let k = 1; k < m; k++) cum.push(cum[k - 1] + Math.hypot((P[k][0] - P[k - 1][0]) * MX, (P[k][1] - P[k - 1][1]) * MY));
+  const L = cum[m - 1]; const bl = Math.min(BL, L / 2.5);
+  const pull = (nm, endIdx) => {
+    const j = junc[`${sc.line}|${nm}`]; if (!j) return;
+    const e = P[endIdx]; const d0 = [j.lon - e[0], j.lat - e[1]];
+    const dz = j.z == null ? 0 : j.z - e[2]; const dg = j.g == null ? 0 : j.g - G[endIdx];
+    if (Math.abs(d0[0] * MX) + Math.abs(d0[1] * MY) > 0.5 || Math.abs(dz) > 0.05) moved++;
+    for (let k = 0; k < m; k++) {
+      const d = endIdx === 0 ? cum[k] : L - cum[k]; if (d >= bl) continue;
+      const t = 1 - d / bl; const w = t * t * (3 - 2 * t);
+      P[k][0] = +(P[k][0] + d0[0] * w).toFixed(7); P[k][1] = +(P[k][1] + d0[1] * w).toFixed(7);
+      P[k][2] = +(P[k][2] + dz * w).toFixed(2); G[k] = +(G[k] + dg * w).toFixed(2);
+    }
+  };
+  pull(sc.from, 0); pull(sc.to, m - 1);
+  done.set(sc.xyz, { xyz: P, g: G }); sc.xyz = P; sc.g = G;
+}
+for (const st of stations) { const j = junc[`${st.line}|${st.name}`]; if (j) { st.lon = +j.lon.toFixed(7); st.lat = +j.lat.toFixed(7); } }
+for (const f of props) { const j = junc[`${f.properties.line}|${f.properties.name}`]; if (j) f.geometry.coordinates = [+j.lon.toFixed(7), +j.lat.toFixed(7)]; }
+console.log(`Röhrenenden angeglichen: ${moved}`);
+
 fs.mkdirSync(OUT, { recursive: true });
 fs.writeFileSync(path.join(OUT, 'network3d.json'), JSON.stringify({ stations, sections }));
 fs.writeFileSync(path.join(OUT, 'stations.geojson'), JSON.stringify({ type: 'FeatureCollection', features: props }));

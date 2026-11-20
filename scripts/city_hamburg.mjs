@@ -5,6 +5,7 @@
 // auseinandergezogen (reine Darstellung). ZR = Zweigbahn Rothenburgsort (1915–1943), heute ohne Liniennummer.
 import fs from 'node:fs';
 import path from 'node:path';
+import { joinEnds } from './join_ends.mjs';
 
 const SRC = process.argv[2] || path.resolve('../../Hamburg');
 const OUT = path.resolve('public/data/hamburg');
@@ -59,6 +60,8 @@ for (const s of net.stations) {
 }
 
 fs.mkdirSync(OUT, { recursive: true });
+// Röhrenenden je Linie und Bahnhof zusammenführen (seitlicher Versatz gemeinsamer Tunnel ohne Sprung)
+console.log(`Röhrenenden angeglichen: ${joinEnds({ sections, stations, props }, { lat0: stations[0].lat })}`);
 fs.writeFileSync(path.join(OUT, 'network3d.json'), JSON.stringify({ stations, sections }));
 fs.writeFileSync(path.join(OUT, 'stations.geojson'), JSON.stringify({ type: 'FeatureCollection', features: props }));
 console.log(`Bahnhöfe ${stations.length}, Abschnitte ${sections.length} (davon U4-Kopien ${sections.length - net.sections.length})`);
