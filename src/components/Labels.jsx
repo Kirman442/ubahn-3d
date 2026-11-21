@@ -31,7 +31,7 @@ export default function Labels({ items, overlay }) {
       let e = old.get(it.key);
       if (e) old.delete(it.key);
       else { e = { key: it.key, el: document.createElement('div'), shown: false }; e.el.style.display = 'none'; root.appendChild(e.el); }
-      e.el.className = `lbl${it.ghost ? ' ghost' : ''}${it.strong ? ' strong' : ''}${it.focus ? ' focus' : ''}${it.bg ? ' bg' : ''}${it.tier ? ' lead' : ''}${it.compact ? ' cmp' : ''}`;
+      e.el.className = `lbl${it.ghost ? ' ghost' : ''}${it.strong ? ' strong' : ''}${it.focus ? ' focus' : ''}${it.bg ? ' bg' : ''}${it.tier ? ' lead' : ''}${it.compact ? ' cmp' : ''}${it.build ? ' build' : ''}`;
       e.lift = it.tier ? it.tier * FLOOR_PX : 0;
       e.el.style.setProperty('--lead', `${e.lift}px`);
       e.el.style.setProperty('--c', it.color);

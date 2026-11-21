@@ -189,7 +189,7 @@ function CityApp({ city, choose, opts, setOpts }) {
         const zs = list.map((s) => s.z); const lo = Math.min(...zs); const hi = Math.max(...zs);
         depth = hi - lo < 0.5 ? depthText(top) : `${list.some(isApprox) ? '≈ ' : ''}${fmtM(lo, 1)}…${fmtM(hi, 1)} m`;
       }
-      out.push({ key: `n:${node}`, x: top.x, y: Y(top.z, top.ground), z: top.zz, text: nameAt(top, iso), depth,
+      out.push({ key: `n:${node}`, name: top.name, x: top.x, y: Y(top.z, top.ground), z: top.zz, text: nameAt(top, iso), depth,
         lines: CITY.lines.map((l) => l.id).filter((l) => lines.includes(l)), color: top.color,
         ghost: list.every((s) => s.state === 'interrupted'), strong: false, focus: !!focusLine, bg: false, compact: true, rank, pri });
     });
@@ -203,13 +203,34 @@ function CityApp({ city, choose, opts, setOpts }) {
         if (!near(kept0, it, R0)) { it.rank = 0; kept0.push(it); } else if (!near([...kept0, ...kept1], it, R1)) { kept1.push(it); } else it.rank = 2;
       });
     }
+    // Bahnhöfe im Bau: nur bei «alle» (bzw. in der Karte ihrer Linie), kursiv mit gestricheltem Rahmen –
+    // Namen aus der Planung, teils Arbeitstitel
+    if (showNames && opts.build && year >= END_YEAR && (opts.labels === 'all' || focusLine)) {
+      (data?.constructionStations || []).forEach((s) => {
+        if (focusLine && s.line !== focusLine) return;
+        out.push({ key: `b:${s.line}|${s.name}`, name: s.name, x: s.x, y: Y(s.z, s.ground), z: s.zz, text: s.name, depth: null,
+          lines: [s.line], color: LINE_COLOR[s.line] || '#888', ghost: false, strong: false, focus: !!focusLine, bg: false, compact: true, build: true, rank: 0 });
+      });
+    }
     // «Etagen»: nur bei «alle» und in der Linienkarte steht jedes Schild je nach Linie höher, mit Führungsstrich
     const floors = opts.labels === 'all' || !!focusLine;
     const order = CITY.lines.map((l) => l.id);
     if (floors) out.forEach((it) => { it.tier = order.indexOf(it.lines[0]) + 1; });
+    // Gewählte Linie: Nachbarbahnhöfe abwechselnd auf zwei Höhen (Abstand entlang der Strecke gerade/ungerade),
+    // damit Namen auf Ost-West-Abschnitten nicht aufeinanderliegen. Nichts wird ausgeblendet.
+    if (focusLine) {
+      const hop = {}; const nb = (n) => nbrs[`${focusLine}|${n}`] || new Set();
+      const names = out.map((it) => it.name).filter(Boolean);
+      for (const start of [...names].sort((a, b) => nb(a).size - nb(b).size)) {
+        if (start in hop) continue;
+        hop[start] = 0; const q = [start];
+        while (q.length) { const n = q.shift(); for (const m of nb(n)) if (!(m in hop)) { hop[m] = hop[n] + 1; q.push(m); } }
+      }
+      out.forEach((it) => { if (it.name && hop[it.name] % 2) it.tier += 1.5; });
+    }
     if (selStation) out.push(one(selStation, true));
     return out;
-  }, [view, nbrs, opts.labels, focusLine, lineNames, selStation, Y, iso]);
+  }, [view, data, nbrs, opts.labels, opts.build, year, focusLine, lineNames, selStation, Y, iso]);
 
   const stats = useMemo(() => {
     // Bahnhöfe = Stationsknoten (s.node), nicht Bahnsteig-/Ebenen-Einträge; siehe assignNodes()

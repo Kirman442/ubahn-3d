@@ -367,3 +367,5 @@ header h1 { font-size: 1.3rem; letter-spacing: -0.01em; color: var(--ink); }
 .legal a { color: var(--accent); }
 .legal .todo { color: var(--ochre); font-weight: 600; }
 .legal .muted { color: var(--muted); font-size: 0.78rem; margin-top: 12px; }
+/* Bahnhöfe im Bau: kursiv, gestrichelter Rahmen in Linienfarbe */
+.lbl.build { font-style: italic; outline: 1px dashed var(--c, #888); outline-offset: -1px; }
