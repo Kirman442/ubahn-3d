@@ -450,7 +450,7 @@ function CityApp({ city, choose, opts, setOpts }) {
           <p className="views-hint">Ziehen: drehen · Rechtsklick: schieben · Rad: zoomen</p>
         </div>
         {!panelOpen && (
-          <button type="button" className="panel-toggle" ref={toggleRef} aria-expanded={false} aria-controls="panel" onClick={() => showPanel(true)}>Steuerung</button>
+          <button type="button" className="panel-toggle" ref={toggleRef} aria-expanded={false} aria-controls="panel" onClick={() => showPanel(true)}>Menu</button>
         )}
         <TimeControl year={year} setYear={setYear} playing={playing} setPlaying={setPlaying} firstYear={firstYear} />
       </main>

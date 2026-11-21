@@ -55,8 +55,8 @@ export default function Panel(p) {
   const { build, surfaceKind, stats, hiddenLines, toggleLine, showAll, focusLine, onLine, opts, setOpt, deepest, iso, year, onStation, stations, open, setOpen, openLegal } = p;
   const md = stats.maxDepthSt;
   return (
-    <aside className={`panel${open ? ' open' : ''}`} id="panel" aria-label="Steuerung">
-      <button type="button" className="close panel-close" onClick={() => setOpen(false)} aria-label="Steuerung schließen">×</button>
+    <aside className={`panel${open ? ' open' : ''}`} id="panel" aria-label="Menu">
+      <button type="button" className="close panel-close" onClick={() => setOpen(false)} aria-label="Menu schließen">×</button>
       <div className="stats">
         <div className="stat" title="Stationsknoten in Betrieb; mehrere Bahnsteig-/Ebenen-Einträge eines Bahnhofs zählen einmal">
           <span className="v">{stats.stations}</span><span className="k">Bahnhöfe</span></div>

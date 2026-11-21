@@ -58,13 +58,12 @@ export default function TimeControl({ year, setYear, playing, setPlaying, firstY
       </button>
       <div className="slider">
         <input type="range" min={START_YEAR} max={END_YEAR} step={1} value={year}
-          onChange={(e) => go(Number(e.target.value))} aria-label="Jahr" aria-describedby="time-cap" />
+          onChange={(e) => go(Number(e.target.value))} aria-label="Jahr" />
         <div className="ticks" aria-hidden="true">
           {decades.map((d) => (
             <span key={d} style={{ left: `${((d - START_YEAR) / (END_YEAR - START_YEAR)) * 100}%` }}>{d}</span>
           ))}
         </div>
-        <p className="time-cap" id="time-cap">Netzstand Ende {year}<span className="cap2"> · heutiger Stadtplan</span></p>
       </div>
       <div className="year-box">
         <button type="button" className="step" onPointerDown={startHold(-1)} onPointerUp={stopHold} onPointerCancel={stopHold} onLostPointerCapture={stopHold}
