@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { CITY } from '../lib/city';
 
 // Alle Hinweise zum Modell an einem Ort statt verstreuter Vorbehalte
-export default function ModelInfo({ exag, onClose }) {
+export default function ModelInfo({ exag, onClose, onAbout }) {
   const ref = useRef(null);
   useEffect(() => { ref.current?.focus(); }, []);
   return (
@@ -21,6 +21,7 @@ export default function ModelInfo({ exag, onClose }) {
         <li><b>Bedienung:</b> ziehen = drehen · Rechtsklick/zwei Finger = verschieben · Rad/Spreizen = zoomen · Esc = zurück.</li>
       </ul>
       <p className="src-line">{CITY.attribution}</p>
+      {onAbout && <p className="src-line"><button type="button" className="linkbtn" onClick={(e) => onAbout(e.currentTarget)}>Mehr: Über das Projekt</button></p>}
     </section>
   );
 }

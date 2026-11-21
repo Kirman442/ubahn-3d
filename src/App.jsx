@@ -383,7 +383,7 @@ function CityApp({ city, choose, opts, setOpts }) {
             onPick={(p) => { if (!p) stepBack(); else if (p.kind === 'station') pickStation(p.id, false); else pickLine(p.line); }} />
         )}
         {tip}
-        {info && <ModelInfo exag={opts.exag} onClose={closeInfo} />}
+        {info && <ModelInfo exag={opts.exag} onClose={closeInfo} onAbout={() => openLegal('projekt', infoBtn.current)} />}
         {legal && <Legal page={legal} setPage={setLegal} onClose={closeLegal} />}
         <LegalLinks open={openLegal} className="out" />
         {data && (

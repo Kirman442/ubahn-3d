@@ -16,6 +16,62 @@ const Addr = () => (
 );
 const Mail = () => <a href={`mailto:${MAIL}`}>{MAIL}</a>;
 
+const ext = { target: '_blank', rel: 'noopener noreferrer' };
+
+function Projekt() {
+  return (
+    <>
+      <h3>Worum es geht</h3>
+      <p>Jeden Tag fahren Millionen Menschen mit der U-Bahn und sehen dabei fast nichts von ihr. Die Strecken liegen verborgen
+        unter Straßen, Häusern und Flüssen und verbinden doch die Teile der Stadt schneller als jedes andere Verkehrsmittel.
+        Diese Anwendung macht den unsichtbaren Teil der Stadt sichtbar: das unterirdische Netz der Linien, die Stadtviertel und
+        die Landschaft, unter denen die Züge fahren, und die Tiefe, die sie von der Oberfläche trennt.</p>
+      <p>Gezeigt werden die U-Bahn-Netze von Berlin, Hamburg, München und Nürnberg/Fürth – mit ihrer Geschichte von der ersten
+        Eröffnung bis zu den Strecken, die heute gebaut werden.</p>
+      <h3>Woher das Projekt kommt</h3>
+      <p>2023 entstand eine <a href="https://kirman442.github.io/berlinmetro/" {...ext}>interaktive Karte zur Geschichte der
+        Berliner U-Bahn</a>. Sie zeigt, wo und wann Bahnhöfe entstanden sind, aber nicht, wie tief sie liegen. Aus dieser Frage
+        ist 2026 das 3D-Modell entstanden.</p>
+      <h3>Was man entdecken kann</h3>
+      <ul>
+        <li>wie tief die Linien liegen: von wenigen Metern unter dem Pflaster bis zu Bahnhöfen mehrere Ebenen tief, und wo sie
+          als Hochbahn ans Licht kommen;</li>
+        <li>wo sich Linien kreuzen und übereinander liegen;</li>
+        <li>wie das Gelände die Strecke prägt, etwa am Hang des Isartals in München;</li>
+        <li>wie die Netze gewachsen sind: Eröffnungen, Umbenennungen, Geisterbahnhöfe der geteilten Stadt Berlin;</li>
+        <li>welche Strecken gerade gebaut werden.</li>
+      </ul>
+      <h3>Wie genau sind die Tiefen?</h3>
+      <p>Genaue Tiefenangaben gibt es nur für einen Teil der Bahnhöfe. Die übrigen sind aus Bauart, Ebenenangaben und
+        Nachbarbahnhöfen abgeleitet oder geschätzt. Die Strecke dazwischen ist aus dem Gelände und typischen Bauregeln
+        berechnet: höchstens 40 ‰ Steigung, waagerechte Bahnsteige. Damit man das sieht, trägt jeder Bahnhof ein Zeichen:
+        Kreis = Angabe aus einer Quelle, Quadrat = abgeleitet, hohler Kreis = Schätzung; «≈» steht vor jedem ungefähren Wert.</p>
+      <p>Damit wenige Meter Tiefe unter einer Stadt von vielen Kilometern überhaupt sichtbar werden, sind die Höhen überhöht
+        dargestellt (voreingestellt 50-fach). Alle Meterangaben bleiben echt.</p>
+      <h3>Besonderheiten der Städte</h3>
+      <ul>
+        <li><b>Berlin:</b> Die erste Linie von 1902 fuhr überwiegend als Hochbahn. Während der Teilung fuhren Züge ohne Halt
+          durch die Geisterbahnhöfe unter Ost-Berlin.</li>
+        <li><b>Hamburg:</b> U2 und U4 teilen sich in der Innenstadt ein Gleis; die Röhren sind dort zur Lesbarkeit
+          nebeneinander gezeichnet. Die Zweigbahn Rothenburgsort (1915–1943) ist grau dargestellt.</li>
+        <li><b>München:</b> Mehrere Linien teilen sich Tunnel (Stammstrecken). Die Liniennummern haben sich im Lauf der Zeit
+          geändert.</li>
+        <li><b>Nürnberg/Fürth:</b> Die U-Bahn fährt seit 1972. Der Zeitregler beginnt 1970, weil Muggenhof und Stadtgrenze
+          schon damals als Straßenbahnhaltestellen an der späteren Strecke lagen. Am Plärrer liegen die beiden Fahrtrichtungen
+          jeder Linie auf verschiedenen Ebenen.</li>
+      </ul>
+      <h3>Was das Modell nicht ist</h3>
+      <p>Kein Bauplan und keine Vermessung. Röhren und Bahnsteige sind Symbole, Zugänge und Umsteigewege schematisch.
+        Stadtplan und Gelände zeigen den heutigen Zustand; frühere Stadtbilder werden nicht rekonstruiert.</p>
+      <h3>Daten und Code</h3>
+      <p>Lage aus OpenStreetMap, Geschichte und Tiefenangaben aus Wikipedia und Wikidata, Gelände aus den amtlichen
+        Höhenmodellen der Länder (Lizenzen im Impressum). Quellcode auf{' '}
+        <a href="https://github.com/Kirman442/ubahn-3d" {...ext}>GitHub</a> (MIT-Lizenz). Hinweise zur Darstellung im «i».</p>
+      <p className="muted">Stand: {STAND}</p>
+    </>
+  );
+}
+
 function Impressum() {
   const quellen = [...new Set(CITIES.filter((c) => c.ready).flatMap((c) => c.attribution.split(' · ')))];
   return (
@@ -86,7 +142,7 @@ function Datenschutz() {
   );
 }
 
-const PAGES = [['impressum', 'Impressum', Impressum], ['datenschutz', 'Datenschutz', Datenschutz]];
+const PAGES = [['projekt', 'Über das Projekt', Projekt], ['impressum', 'Impressum', Impressum], ['datenschutz', 'Datenschutz', Datenschutz]];
 
 export default function Legal({ page, setPage, onClose }) {
   const box = useRef(null); const head = useRef(null);
@@ -104,7 +160,7 @@ export default function Legal({ page, setPage, onClose }) {
     <div className="legal-back" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <section className="legal" role="dialog" aria-modal="true" aria-labelledby="legal-ttl" ref={box} onKeyDown={trap}>
         <div className="legal-top">
-          <div className="seg legal-tabs" role="tablist" aria-label="Rechtliches">
+          <div className="seg legal-tabs" role="tablist" aria-label="Projekt und Rechtliches">
             {PAGES.map(([id, t]) => (
               <button key={id} type="button" role="tab" aria-selected={page === id} className={page === id ? 'on' : ''} onClick={() => setPage(id)}>{t}</button>
             ))}
@@ -120,7 +176,9 @@ export default function Legal({ page, setPage, onClose }) {
 
 export function LegalLinks({ open, className = '' }) {
   return (
-    <nav className={`legal-links ${className}`} aria-label="Rechtliches">
+    <nav className={`legal-links ${className}`} aria-label="Projekt und Rechtliches">
+      <button type="button" className="linkbtn" onClick={(e) => open('projekt', e.currentTarget)}>Über das Projekt</button>
+      <span aria-hidden="true">·</span>
       <button type="button" className="linkbtn" onClick={(e) => open('impressum', e.currentTarget)}>Impressum</button>
       <span aria-hidden="true">·</span>
       <button type="button" className="linkbtn" onClick={(e) => open('datenschutz', e.currentTarget)}>Datenschutz</button>

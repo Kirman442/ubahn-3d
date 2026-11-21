@@ -345,8 +345,8 @@ header h1 { font-size: 1.3rem; letter-spacing: -0.01em; color: var(--ink); }
 /* Impressum / Datenschutz: deckender Hintergrund, damit der Text über der Szene gut lesbar ist */
 :root, [data-theme='hell'] { --legal-bg: #FBFCFD; }
 [data-theme='dunkel'] { --legal-bg: #161B22; }
-.legal-links { display: flex; gap: 4px; align-items: center; justify-content: center; font-size: 0.74rem; color: var(--muted); }
-.legal-links .linkbtn { font-size: 0.74rem; color: var(--muted); min-height: 24px; }
+.legal-links { display: flex; gap: 2px; align-items: center; justify-content: center; font-size: 0.74rem; color: var(--muted); }
+.legal-links .linkbtn { font-size: 0.74rem; color: var(--muted); min-height: 24px; white-space: nowrap; padding: 0 3px; }
 .legal-links .linkbtn:hover { color: var(--ink); }
 .legal-links.out { position: absolute; z-index: 4; right: 12px; bottom: 8px; width: 268px; }
 .legal-links.in { display: none; margin-top: 8px; }
