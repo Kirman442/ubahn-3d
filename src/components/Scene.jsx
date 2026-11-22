@@ -16,6 +16,22 @@ const CAM = new Map();
 const TAN = Math.tan(THREE.MathUtils.degToRad(42 / 2));
 const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
+// Mausrad: heranzoomen zum Mauszeiger, herauszoomen wie gewohnt (zur Bildmitte). Der Schalter wird vor
+// OrbitControls gesetzt (Capture-Phase am selben Element); Gesten (Pinch) bleiben beim Standard.
+function WheelToCursor() {
+  const controls = useThree((st) => st.controls);
+  useEffect(() => {
+    const el = controls?.domElement;
+    if (!el) return undefined;
+    const wheel = (e) => { controls.zoomToCursor = e.deltaY < 0; };
+    const reset = () => { controls.zoomToCursor = false; };
+    el.addEventListener('wheel', wheel, { capture: true, passive: true });
+    el.addEventListener('pointerdown', reset, true);
+    return () => { el.removeEventListener('wheel', wheel, { capture: true }); el.removeEventListener('pointerdown', reset, true); reset(); };
+  }, [controls]);
+  return null;
+}
+
 // Kamera: Flug, Bahnhofsansicht je Lage, Rahmung von Bahnhofsgruppen, Bezug zum gewählten Bahnhof halten
 function CameraRig({ api, Y, SY, exag, selected }) {
   const { camera, controls } = useThree();
@@ -203,6 +219,7 @@ const Scene = forwardRef(function Scene(props, ref) {
         {opts.transfers && <Transfers pairs={view.transfers} byId={view.byId} Y={Y} />}
         <Labels items={labelItems} overlay={overlay} />
         <CameraRig api={rig} Y={Y} SY={SY} exag={opts.exag} selected={selected} />
+        <WheelToCursor />
         <OrbitControls makeDefault target={t0} enableDamping={!reducedMotion()} dampingFactor={0.08} minDistance={300} maxDistance={150000} onStart={onUserCamera} />
       </Canvas>
       <div className="labels" ref={overlay} />
