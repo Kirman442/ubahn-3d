@@ -10,7 +10,7 @@ const vendor = (id) => {
   return 'vendor';
 };
 
-// Veröffentlichung auf GitHub Pages unter https://kirman442.github.io/ubahn-3d/ – lokal bleibt die Wurzel '/'
+// Veröffentlichung auf GitHub Pages unter https://gis.krmn.app/ubahn-3d/ – lokal bleibt die Wurzel '/'
 export default defineConfig(({ command, isPreview }) => ({
   plugins: [react()],
   base: command === 'build' || isPreview ? '/ubahn-3d/' : '/',
