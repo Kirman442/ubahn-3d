@@ -1,4 +1,4 @@
-# Baut die App und veröffentlicht sie auf GitHub Pages (https://kirman442.github.io/ubahn-3d/)
+# Baut die App und veröffentlicht sie auf GitHub Pages (https://gis.krmn.app/ubahn-3d/)
 name: Deploy
 
 on:

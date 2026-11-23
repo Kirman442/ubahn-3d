@@ -29,7 +29,7 @@ function Projekt() {
       <p>Gezeigt werden die U-Bahn-Netze von Berlin, Hamburg, München und Nürnberg/Fürth – mit ihrer Geschichte von der ersten
         Eröffnung bis zu den Strecken, die heute gebaut werden.</p>
       <h3>Woher das Projekt kommt</h3>
-      <p>2023 entstand eine <a href="https://kirman442.github.io/berlinmetro/" {...ext}>interaktive Karte zur Geschichte der
+      <p>2023 entstand eine <a href="https://gis.krmn.app/berlinmetro/" {...ext}>interaktive Karte zur Geschichte der
         Berliner U-Bahn</a>. Sie zeigt, wo und wann Bahnhöfe entstanden sind, aber nicht, wie tief sie liegen. Aus dieser Frage
         ist 2026 das 3D-Modell entstanden.</p>
       <h3>Was man entdecken kann</h3>

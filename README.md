@@ -3,7 +3,7 @@
 Die U-Bahn-Netze von **Berlin, Hamburg, München und Nürnberg/Fürth** als 3D-Modell unter dem Stadtgrundriss:
 Tiefe der Bahnhöfe, Trassen mit Geländeverlauf, Geschichte per Jahresregler, Strecken im Bau.
 
-**Live:** https://kirman442.github.io/ubahn-3d/
+**Live:** https://gis.krmn.app/ubahn-3d/
 
 - Röhren nach Linie oder Tiefe gefärbt, Überhöhung 1–200×, Tiefe unter Gelände oder Höhe ü. NHN
 - Bahnhofs- und Linienkarten mit Längsprofil (Gelände und Modelltrasse)
@@ -18,7 +18,7 @@ Das Höhenmodell ist vereinfacht: gemessene Tiefen gibt es nur für einen Teil d
 ```
 npm install
 npm run dev        # http://localhost:5174/
-npm run build      # dist/ für https://kirman442.github.io/ubahn-3d/
+npm run build      # dist/ für https://gis.krmn.app/ubahn-3d/
 ```
 
 React 18, @react-three/fiber 8, three.js 0.169, Vite 6. Stadtwahl über den Hash (`#hamburg`, `#muenchen`, `#nuernberg`).
